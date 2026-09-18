@@ -1,56 +1,57 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { app } from "electron";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const dataDir = path.join(__dirname, "..", "data");
-const dataFile = path.join(dataDir, "usage.json");
-
-function ensureStorage() {
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-
-  if (!fs.existsSync(dataFile)) {
-    fs.writeFileSync(dataFile, JSON.stringify({}, null, 2), "utf8");
-  }
+function filePath() {
+  return path.join(app.getPath("userData"), "usage.json");
 }
 
-export function loadData() {
-  ensureStorage();
-
+function load() {
   try {
-    return JSON.parse(fs.readFileSync(dataFile, "utf8"));
+    return JSON.parse(fs.readFileSync(filePath(), "utf8"));
   } catch {
     return {};
   }
 }
 
-export function saveData(data) {
-  ensureStorage();
-
-  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), "utf8");
+function save(data) {
+  fs.mkdirSync(path.dirname(filePath()), { recursive: true });
+  fs.writeFileSync(filePath(), JSON.stringify(data, null, 2), "utf8");
 }
 
-export function todayKey() {
-  const now = new Date();
+function key(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+function previousDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
 }
 
 export function addUsage(seconds) {
-  const data = loadData();
-  const key = todayKey();
+  const data = load();
+  const today = key();
+  data[today] = (data[today] || 0) + seconds;
+  save(data);
+}
 
-  data[key] = (data[key] || 0) + seconds;
+export function getUsage() {
+  const data = load();
+  const today = key();
+  const yesterday = key(previousDate(1));
 
-  saveData(data);
+  let week = 0;
+  for (let i = 0; i < 7; i++) {
+    week += data[key(previousDate(i))] || 0;
+  }
 
-  return data[key];
+  return {
+    today: Math.floor(data[today] || 0),
+    yesterday: Math.floor(data[yesterday] || 0),
+    week: Math.floor(week)
+  };
 }
