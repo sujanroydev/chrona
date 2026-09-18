@@ -1,0 +1,28 @@
+{
+  "name": "laptop-time",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "today": "node src/cli.js today",
+    "week": "node src/cli.js week",
+    "month": "node src/cli.js month"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.4.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.4.1",
+  "type": "module",
+  "dependencies": {
+    "koffi": "^3.3.0"
+  }
+}
