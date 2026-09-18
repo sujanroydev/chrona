@@ -81,7 +81,11 @@ function track() {
 }
 
 function createTray() {
-  tray = new Tray(nativeImage.createEmpty());
+  const trayIcon = nativeImage.createFromPath(
+    path.join(__dirname, "../assets/tray.png"),
+  );
+
+  tray = new Tray(trayIcon);
 
   const menu = Menu.buildFromTemplate([
     {
