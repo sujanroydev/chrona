@@ -7,6 +7,9 @@ import { addUsage, getUsage } from "./storage.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const iconPath = path.join(__dirname, "assets/icon.png");
+const trayPath = path.join(__dirname, "assets/tray.png");
+
 const CHECK_INTERVAL = 10_000;
 const IDLE_LIMIT = 5 * 60 * 1000;
 
@@ -24,6 +27,7 @@ function formatTime(seconds) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    icon: iconPath,
     width: 430,
     height: 570,
     minWidth: 380,
@@ -81,11 +85,7 @@ function track() {
 }
 
 function createTray() {
-  const trayIcon = nativeImage.createFromPath(
-    path.join(__dirname, "../assets/tray.png"),
-  );
-
-  tray = new Tray(trayIcon);
+  tray = new Tray(nativeImage.createFromPath(trayPath));
 
   const menu = Menu.buildFromTemplate([
     {
