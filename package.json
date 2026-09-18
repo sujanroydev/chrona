@@ -1,5 +1,5 @@
 {
-  "name": "laptop-time",
+  "name": "chrona",
   "version": "0.1.0",
   "private": true,
   "description": "A lightweight Windows laptop activity tracker.",
@@ -18,8 +18,8 @@
     "electron-builder": "^26.0.12"
   },
   "build": {
-    "appId": "in.knowlet.laptoptime",
-    "productName": "Laptop Time",
+    "appId": "in.knowlet.chrona",
+    "productName": "Chrona",
     "files": [
       "src/**/*",
       "package.json"

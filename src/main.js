@@ -31,12 +31,12 @@ function createWindow() {
     resizable: false,
     show: false,
     autoHideMenuBar: true,
-    title: "Laptop Time",
+    title: "Chrona",
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
-      nodeIntegration: false
-    }
+      nodeIntegration: false,
+    },
   });
 
   mainWindow.loadFile(path.join(__dirname, "index.html"));
@@ -59,12 +59,12 @@ function updateUI() {
       yesterday: usage.yesterday,
       week: usage.week,
       active,
-      tracking: running
+      tracking: running,
     });
   }
 
   if (tray) {
-    tray.setToolTip(`Laptop Time — Today: ${formatTime(usage.today)}`);
+    tray.setToolTip(`Chrona — Today: ${formatTime(usage.today)}`);
   }
 }
 
@@ -85,18 +85,18 @@ function createTray() {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: "Open Laptop Time",
+      label: "Open Chrona",
       click: () => {
         mainWindow.show();
         mainWindow.focus();
-      }
+      },
     },
     {
       label: "Pause tracking",
       click: () => {
         running = false;
         updateUI();
-      }
+      },
     },
     {
       label: "Resume tracking",
@@ -104,7 +104,7 @@ function createTray() {
         running = true;
         lastCheck = Date.now();
         updateUI();
-      }
+      },
     },
     { type: "separator" },
     {
@@ -112,8 +112,8 @@ function createTray() {
       click: () => {
         app.isQuitting = true;
         app.quit();
-      }
-    }
+      },
+    },
   ]);
 
   tray.setContextMenu(menu);
@@ -128,7 +128,7 @@ ipcMain.handle("get-state", () => {
   return {
     ...usage,
     active: running && isUserActive(IDLE_LIMIT),
-    tracking: running
+    tracking: running,
   };
 });
 
@@ -139,13 +139,13 @@ ipcMain.on("toggle-tracking", (_, value) => {
 });
 
 app.whenReady().then(() => {
-  app.setAppUserModelId("in.knowlet.laptoptime");
+  app.setAppUserModelId("in.knowlet.chrona");
 
   // Start with Windows after installation.
   app.setLoginItemSettings({
     openAtLogin: true,
     path: process.execPath,
-    args: ["--hidden"]
+    args: ["--hidden"],
   });
 
   createWindow();

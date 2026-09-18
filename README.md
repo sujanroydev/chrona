@@ -1,6 +1,6 @@
-# Laptop Time
+# Chrona
 
-A small Windows desktop app that automatically tracks active laptop usage.
+A small Windows desktop app that automatically tracks active usage.
 
 ## What it tracks
 

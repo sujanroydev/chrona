@@ -23,16 +23,14 @@ function render(state) {
       ? "Currently active"
       : "Currently idle";
 
-  toggle.textContent = state.tracking
-    ? "Pause tracking"
-    : "Resume tracking";
+  toggle.textContent = state.tracking ? "Pause tracking" : "Resume tracking";
 }
 
 toggle.addEventListener("click", async () => {
-  const state = await window.laptopTime.getState();
-  window.laptopTime.toggleTracking(!state.tracking);
+  const state = await window.chrona.getState();
+  window.chrona.toggleTracking(!state.tracking);
 });
 
-window.laptopTime.onState(render);
+window.chrona.onState(render);
 
-window.laptopTime.getState().then(render);
+window.chrona.getState().then(render);
