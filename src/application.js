@@ -9,6 +9,10 @@ const longest = document.querySelector("#longest");
 const mostActive = document.querySelector("#mostActive");
 const sessions = document.querySelector("#sessions");
 const back = document.querySelector("#back");
+const timelineDate = document.querySelector("#timelineDate");
+const timelineTrack = document.querySelector("#timelineTrack");
+const sessionList = document.querySelector("#sessionList");
+let applicationData = null;
 
 function formatTime(seconds) {
   const value = Math.max(0, Math.floor(seconds));
@@ -93,6 +97,61 @@ function renderEvents(data) {
   }
 }
 
+function formatClock(timestamp) {
+  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDateLong(date) {
+  return parseDate(date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+function renderTimeline(day) {
+  timelineTrack.innerHTML = "";
+  sessionList.innerHTML = "";
+
+  const sessionsForDay = Array.isArray(day.sessions) ? day.sessions : [];
+  const dayStart = new Date(`${day.date}T00:00:00`).getTime();
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+
+  for (const session of sessionsForDay) {
+    const open = Math.max(Number(session.open), dayStart);
+    const close = Math.min(Number(session.close), dayEnd);
+    if (!Number.isFinite(open) || !Number.isFinite(close) || close <= open) continue;
+
+    const segment = document.createElement("div");
+    segment.className = "timeline-segment";
+    segment.style.left = `${((open - dayStart) / (24 * 60 * 60 * 1000)) * 100}%`;
+    segment.style.width = `${((close - open) / (24 * 60 * 60 * 1000)) * 100}%`;
+    segment.title = `${formatClock(open)} – ${formatClock(close)}`;
+    timelineTrack.appendChild(segment);
+
+    const row = document.createElement("div");
+    row.className = "session";
+    const time = document.createElement("span");
+    time.className = "session-time";
+    time.textContent = `${formatClock(open)} – ${formatClock(close)}`;
+    const duration = document.createElement("span");
+    duration.className = "session-duration";
+    duration.textContent = formatTime((close - open) / 1000);
+    row.append(time, duration);
+    sessionList.appendChild(row);
+  }
+
+  if (!sessionsForDay.length) {
+    sessionList.innerHTML = '<div class="empty">No recorded usage intervals for this day.</div>';
+  }
+}
+
+function populateTimelineDates(data) {
+  timelineDate.innerHTML = "";
+  for (const day of data.days) {
+    const option = document.createElement("option");
+    option.value = day.date;
+    option.textContent = formatDateLong(day.date);
+    timelineDate.appendChild(option);
+  }
+}
+
 function renderAnalytics(data) {
   const activeDays = data.days.filter((day) => day.seconds > 0);
   const averageSeconds = activeDays.length ? data.total / activeDays.length : 0;
@@ -118,6 +177,9 @@ async function init() {
 
   title.textContent = application;
   const data = await window.chrona.getApplicationUsage(application, 30);
+  applicationData = data;
+  populateTimelineDates(data);
+  timelineDate.value = data.days[data.days.length - 1]?.date || "";
 
   total.textContent = formatTime(data.total);
   opens.textContent = data.opens;
@@ -126,6 +188,8 @@ async function init() {
   renderUsage(data);
   renderEvents(data);
   renderAnalytics(data);
+  const selectedDay = data.days[data.days.length - 1];
+  if (selectedDay) renderTimeline(selectedDay);
 }
 
 back.addEventListener("click", () => {
@@ -133,3 +197,9 @@ back.addEventListener("click", () => {
 });
 
 init();
+
+
+timelineDate.addEventListener("change", () => {
+  const day = applicationData?.days.find((item) => item.date === timelineDate.value);
+  if (day) renderTimeline(day);
+});

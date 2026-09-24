@@ -16,6 +16,22 @@
       .subtitle { color: #6b7280; margin-top: 5px; font-size: 13px; }
       .section { margin-top: 22px; padding: 20px; background: white; border: 1px solid #e5e7eb; border-radius: 16px; }
       .section h2 { margin: 0; font-size: 16px; }
+      .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      .section-subtitle { margin-top: 5px; color: #6b7280; font-size: 12px; }
+      select { border: 1px solid #e5e7eb; border-radius: 9px; padding: 8px 10px; background: white; color: #111827; font: inherit; }
+      .timeline { position: relative; height: 92px; margin-top: 28px; border-bottom: 2px solid #111827; border-left: 2px solid #111827; overflow: hidden; background: #fff; }
+      .timeline-grid { position: absolute; inset: 0; background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(20% - 1px), #eef0f3 calc(20% - 1px), #eef0f3 20%); pointer-events: none; }
+      .timeline-track { position: absolute; left: 0; right: 0; top: 31px; height: 25px; }
+      .timeline-segment { position: absolute; top: 0; height: 25px; min-width: 2px; border-radius: 4px; background: #a8e617; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
+      .timeline-segment::before, .timeline-segment::after { content: ""; position: absolute; top: 5px; width: 5px; height: 15px; background: #111827; border-radius: 1px; }
+      .timeline-segment::before { left: 0; }
+      .timeline-segment::after { right: 0; }
+      .timeline-labels { display: flex; justify-content: space-between; padding: 7px 0 0; font-size: 11px; font-weight: 600; color: #6b7280; }
+      .session-list { margin-top: 16px; display: grid; gap: 8px; }
+      .session { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; background: #f8fafc; border-radius: 9px; font-size: 12px; }
+      .session-time { font-weight: 600; color: #111827; }
+      .session-duration { color: #6b7280; }
+
       .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
       .card { padding: 15px; border: 1px solid #e5e7eb; border-radius: 12px; }
       .card small { display: block; color: #6b7280; margin-bottom: 7px; }
@@ -56,6 +72,26 @@
           <div class="card"><small>Times closed</small><strong id="closes">0</strong></div>
         </div>
         <div id="usageChart" class="chart"></div>
+      </section>
+
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <h2>Daily activity</h2>
+            <div class="section-subtitle">Highlighted periods show when the application was in use.</div>
+          </div>
+          <select id="timelineDate" aria-label="Select day"></select>
+        </div>
+
+        <div class="timeline" id="timeline">
+          <div class="timeline-grid"></div>
+          <div class="timeline-track" id="timelineTrack"></div>
+        </div>
+        <div class="timeline-labels">
+          <span>00</span><span>05</span><span>10</span><span>15</span><span>20</span><span>24</span>
+        </div>
+        <div class="session-list" id="sessionList"></div>
       </section>
 
       <section class="section">

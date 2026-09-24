@@ -35,11 +35,11 @@ function previousDate(days) {
 
 function normalizeDay(value) {
   if (typeof value === "number") {
-    return { total: value, apps: {}, events: {} };
+    return { total: value, apps: {}, events: {}, sessions: {} };
   }
 
   if (!value || typeof value !== "object") {
-    return { total: 0, apps: {}, events: {} };
+    return { total: 0, apps: {}, events: {}, sessions: {} };
   }
 
   return {
@@ -47,6 +47,8 @@ function normalizeDay(value) {
     apps: value.apps && typeof value.apps === "object" ? value.apps : {},
     events:
       value.events && typeof value.events === "object" ? value.events : {},
+    sessions:
+      value.sessions && typeof value.sessions === "object" ? value.sessions : {},
   };
 }
 
@@ -71,6 +73,33 @@ export function addUsage(seconds, application = "Unknown") {
   day.apps[appName] = (Number(day.apps[appName]) || 0) + seconds;
 
   data[today] = day;
+  save(data);
+}
+
+export function recordApplicationSession(application, openAt, closeAt) {
+  const start = Number(openAt);
+  const end = Number(closeAt);
+  const appName = String(application || "Unknown").trim() || "Unknown";
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+
+  const data = load();
+  let cursor = new Date(start);
+
+  while (cursor.getTime() < end) {
+    const date = dateKey(cursor);
+    const next = new Date(cursor);
+    next.setHours(24, 0, 0, 0);
+    const segmentEnd = Math.min(end, next.getTime());
+    const day = normalizeDay(data[date]);
+
+    if (!Array.isArray(day.sessions[appName])) day.sessions[appName] = [];
+    day.sessions[appName].push({ open: cursor.getTime(), close: segmentEnd });
+    data[date] = day;
+
+    cursor = new Date(segmentEnd);
+  }
+
   save(data);
 }
 
@@ -101,6 +130,11 @@ function dayUsage(data, date) {
         seconds: Math.floor(Number(seconds) || 0),
         opens: Math.floor(normalizeAppEvent(day.events[name]).opens),
         closes: Math.floor(normalizeAppEvent(day.events[name]).closes),
+        sessions: Array.isArray(day.sessions[name])
+          ? day.sessions[name]
+              .filter((session) => Number.isFinite(session?.open) && Number.isFinite(session?.close))
+              .map((session) => ({ open: session.open, close: session.close }))
+          : [],
       }))
       .filter((app) => app.seconds > 0 || app.opens > 0 || app.closes > 0)
       .sort((a, b) => b.seconds - a.seconds),
@@ -145,6 +179,11 @@ export function getApplicationUsage(application, days = 30) {
       seconds: Math.floor(Number(day.apps[name]) || 0),
       opens: Math.floor(event.opens),
       closes: Math.floor(event.closes),
+      sessions: Array.isArray(day.sessions[name])
+        ? day.sessions[name]
+            .filter((session) => Number.isFinite(session?.open) && Number.isFinite(session?.close))
+            .map((session) => ({ open: session.open, close: session.close }))
+        : [],
     });
   }
 

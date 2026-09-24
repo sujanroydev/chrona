@@ -5,6 +5,7 @@ import { isUserActive, getForegroundApplication } from "./windows.js";
 import {
   addUsage,
   recordApplicationEvent,
+  recordApplicationSession,
   getUsage,
   getRecentUsage,
   getDayUsage,
@@ -27,6 +28,7 @@ let lastCheck = Date.now();
 let running = true;
 let currentApplication = null;
 let currentApplicationOpen = false;
+let currentApplicationOpenedAt = null;
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -94,18 +96,26 @@ function track() {
     addUsage(elapsed / 1000, application);
 
     if (!currentApplicationOpen || currentApplication !== application) {
-      if (currentApplicationOpen && currentApplication) {
+      if (currentApplicationOpen && currentApplication && currentApplicationOpenedAt) {
+        const closedAt = Date.now();
         recordApplicationEvent(currentApplication, "close");
+        recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
       }
 
       currentApplication = application;
+      currentApplicationOpenedAt = Date.now();
       currentApplicationOpen = true;
       recordApplicationEvent(application, "open");
     }
   } else if (currentApplicationOpen && currentApplication) {
+    const closedAt = Date.now();
     recordApplicationEvent(currentApplication, "close");
+    if (currentApplicationOpenedAt) {
+      recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
+    }
     currentApplicationOpen = false;
     currentApplication = null;
+    currentApplicationOpenedAt = null;
   }
 
   updateUI();
@@ -127,9 +137,14 @@ function createTray() {
       click: () => {
         running = false;
         if (currentApplicationOpen && currentApplication) {
+          const closedAt = Date.now();
           recordApplicationEvent(currentApplication, "close");
+          if (currentApplicationOpenedAt) {
+            recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
+          }
           currentApplicationOpen = false;
           currentApplication = null;
+          currentApplicationOpenedAt = null;
         }
         updateUI();
       },
@@ -177,7 +192,19 @@ ipcMain.handle("get-application-usage", (_, application, days = 30) => {
     throw new Error("Invalid application");
   }
 
-  return getApplicationUsage(application, days);
+  const result = getApplicationUsage(application, days);
+  if (currentApplicationOpen && currentApplication === application && currentApplicationOpenedAt) {
+    const now = Date.now();
+    const start = currentApplicationOpenedAt;
+    for (const day of result.days) {
+      const dayStart = new Date(`${day.date}T00:00:00`).getTime();
+      const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+      const open = Math.max(start, dayStart);
+      const close = Math.min(now, dayEnd);
+      if (close > open) day.sessions.push({ open, close, live: true });
+    }
+  }
+  return result;
 });
 
 ipcMain.handle("get-day-usage", (_, date) => {
@@ -190,9 +217,14 @@ ipcMain.handle("get-day-usage", (_, date) => {
 
 ipcMain.on("toggle-tracking", (_, value) => {
   if (!value && currentApplicationOpen && currentApplication) {
+    const closedAt = Date.now();
     recordApplicationEvent(currentApplication, "close");
+    if (currentApplicationOpenedAt) {
+      recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
+    }
     currentApplicationOpen = false;
     currentApplication = null;
+    currentApplicationOpenedAt = null;
   }
   running = value;
   lastCheck = Date.now();
@@ -218,6 +250,17 @@ app.whenReady().then(() => {
     mainWindow.hide();
   } else {
     mainWindow.show();
+  }
+});
+
+app.on("before-quit", () => {
+  if (currentApplicationOpen && currentApplication && currentApplicationOpenedAt) {
+    const closedAt = Date.now();
+    recordApplicationEvent(currentApplication, "close");
+    recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
+    currentApplicationOpen = false;
+    currentApplication = null;
+    currentApplicationOpenedAt = null;
   }
 });
 
