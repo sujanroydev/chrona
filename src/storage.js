@@ -34,19 +34,30 @@ function previousDate(days) {
 }
 
 function normalizeDay(value) {
-  // Backwards compatibility with the original format:
-  // { "2026-09-24": 12345 }
   if (typeof value === "number") {
-    return { total: value, apps: {} };
+    return { total: value, apps: {}, events: {} };
   }
 
   if (!value || typeof value !== "object") {
-    return { total: 0, apps: {} };
+    return { total: 0, apps: {}, events: {} };
   }
 
   return {
     total: Number(value.total) || 0,
     apps: value.apps && typeof value.apps === "object" ? value.apps : {},
+    events:
+      value.events && typeof value.events === "object" ? value.events : {},
+  };
+}
+
+function normalizeAppEvent(value) {
+  if (!value || typeof value !== "object") {
+    return { opens: 0, closes: 0 };
+  }
+
+  return {
+    opens: Math.max(0, Number(value.opens) || 0),
+    closes: Math.max(0, Number(value.closes) || 0),
   };
 }
 
@@ -63,6 +74,21 @@ export function addUsage(seconds, application = "Unknown") {
   save(data);
 }
 
+export function recordApplicationEvent(application, type) {
+  const appName = String(application || "Unknown").trim() || "Unknown";
+  if (type !== "open" && type !== "close") return;
+
+  const data = load();
+  const today = dateKey();
+  const day = normalizeDay(data[today]);
+  const event = normalizeAppEvent(day.events[appName]);
+
+  event[type === "open" ? "opens" : "closes"] += 1;
+  day.events[appName] = event;
+  data[today] = day;
+  save(data);
+}
+
 function dayUsage(data, date) {
   const day = normalizeDay(data[date]);
 
@@ -73,8 +99,10 @@ function dayUsage(data, date) {
       .map(([name, seconds]) => ({
         name,
         seconds: Math.floor(Number(seconds) || 0),
+        opens: Math.floor(normalizeAppEvent(day.events[name]).opens),
+        closes: Math.floor(normalizeAppEvent(day.events[name]).closes),
       }))
-      .filter((app) => app.seconds > 0)
+      .filter((app) => app.seconds > 0 || app.opens > 0 || app.closes > 0)
       .sort((a, b) => b.seconds - a.seconds),
   };
 }
@@ -110,9 +138,13 @@ export function getApplicationUsage(application, days = 30) {
   for (let i = count - 1; i >= 0; i--) {
     const date = dateKey(previousDate(i));
     const day = normalizeDay(data[date]);
+    const event = normalizeAppEvent(day.events[name]);
+
     result.push({
       date,
       seconds: Math.floor(Number(day.apps[name]) || 0),
+      opens: Math.floor(event.opens),
+      closes: Math.floor(event.closes),
     });
   }
 
@@ -120,6 +152,8 @@ export function getApplicationUsage(application, days = 30) {
     application: name,
     days: result,
     total: result.reduce((sum, day) => sum + day.seconds, 0),
+    opens: result.reduce((sum, day) => sum + day.opens, 0),
+    closes: result.reduce((sum, day) => sum + day.closes, 0),
   };
 }
 

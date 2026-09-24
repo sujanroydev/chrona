@@ -8,7 +8,6 @@ const detailBack = document.querySelector("#detailBack");
 
 let currentHistory = [];
 let selectedDate = null;
-let selectedApplication = null;
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -73,7 +72,6 @@ function renderChart(history, selected) {
 }
 
 function renderApps(day) {
-  selectedApplication = null;
   detailDate.textContent = formatFullDate(day.date);
   detailTotal.textContent = formatTime(day.total);
   chartTitle.textContent = "Daily usage";
@@ -118,43 +116,7 @@ function renderApps(day) {
 }
 
 function renderApplicationHistory(data) {
-  selectedApplication = data.application;
-  detailBack.hidden = false;
-  chartTitle.textContent = `${data.application} — last 30 days`;
-  detailDate.textContent = "Application usage";
-  detailTotal.textContent = formatTime(data.total);
-  apps.innerHTML = "";
-
-  const max = Math.max(...data.days.map((day) => day.seconds), 1);
-  const wrapper = document.createElement("div");
-  wrapper.className = "app-history-chart";
-
-  for (const day of data.days) {
-    const item = document.createElement("div");
-    item.className = "bar-item";
-    item.title = `${formatFullDate(day.date)} — ${formatTime(day.seconds)}`;
-
-    const value = document.createElement("div");
-    value.className = "bar-value";
-    value.textContent = day.seconds ? formatTime(day.seconds) : "";
-
-    const wrap = document.createElement("div");
-    wrap.className = "bar-wrap";
-
-    const bar = document.createElement("div");
-    bar.className = "bar app-bar";
-    bar.style.height = `${Math.max((day.seconds / max) * 100, day.seconds ? 3 : 0)}%`;
-
-    const date = document.createElement("div");
-    date.className = "date";
-    date.textContent = formatDate(day.date);
-
-    wrap.appendChild(bar);
-    item.append(value, wrap, date);
-    wrapper.appendChild(item);
-  }
-
-  apps.appendChild(wrapper);
+  window.location.href = `application.html?app=${encodeURIComponent(data.application)}`;
 }
 
 async function selectDay(date) {
@@ -165,8 +127,7 @@ async function selectDay(date) {
 }
 
 async function selectApplication(application) {
-  const data = await window.chrona.getApplicationUsage(application, 30);
-  renderApplicationHistory(data);
+  window.location.href = `application.html?app=${encodeURIComponent(application)}`;
 }
 
 async function init() {

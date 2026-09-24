@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chrona — Application</title>
+    <style>
+      :root { font-family: "Segoe UI", system-ui, sans-serif; color: #202124; background: #f7f8fa; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 28px; }
+      .page { max-width: 820px; margin: auto; }
+      .top { display: flex; align-items: center; gap: 14px; }
+      .back { width: auto; margin: 0; padding: 8px 12px; background: white; color: #111827; border: 1px solid #e5e7eb; border-radius: 9px; cursor: pointer; }
+      h1 { margin: 0; font-size: 26px; font-weight: 650; }
+      .subtitle { color: #6b7280; margin-top: 5px; font-size: 13px; }
+      .section { margin-top: 22px; padding: 20px; background: white; border: 1px solid #e5e7eb; border-radius: 16px; }
+      .section h2 { margin: 0; font-size: 16px; }
+      .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+      .card { padding: 15px; border: 1px solid #e5e7eb; border-radius: 12px; }
+      .card small { display: block; color: #6b7280; margin-bottom: 7px; }
+      .card strong { font-size: 21px; }
+      .chart { margin-top: 20px; display: flex; align-items: flex-end; gap: 7px; height: 230px; overflow-x: auto; padding-bottom: 2px; }
+      .bar-item { flex: 1 0 42px; min-width: 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+      .bar-value { font-size: 9px; color: #6b7280; min-height: 12px; }
+      .bar-wrap { height: 170px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+      .bar { width: min(28px, 70%); min-height: 3px; border-radius: 6px 6px 2px 2px; background: #4f46e5; }
+      .open-bar { background: #111827; }
+      .close-bar { background: #9ca3af; }
+      .date { font-size: 10px; color: #6b7280; white-space: nowrap; }
+      .legend { display: flex; gap: 16px; margin-top: 12px; color: #6b7280; font-size: 12px; }
+      .legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; background: #111827; }
+      .legend .closes::before { background: #9ca3af; }
+      .analytics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+      .analytics .card strong { font-size: 18px; }
+      .note { margin-top: 14px; color: #9ca3af; font-size: 11px; }
+      .empty { color: #9ca3af; text-align: center; padding: 40px 10px; }
+      @media (max-width: 650px) { .summary, .analytics { grid-template-columns: 1fr; } body { padding: 18px; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="top">
+        <button class="back" id="back" type="button">← Back</button>
+        <div>
+          <h1 id="title">Application</h1>
+          <div class="subtitle">Usage analytics for the last 30 days</div>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2>Usage</h2>
+        <div class="summary">
+          <div class="card"><small>Total usage</small><strong id="total">0h 0m</strong></div>
+          <div class="card"><small>Times opened</small><strong id="opens">0</strong></div>
+          <div class="card"><small>Times closed</small><strong id="closes">0</strong></div>
+        </div>
+        <div id="usageChart" class="chart"></div>
+      </section>
+
+      <section class="section">
+        <h2>Open & close activity</h2>
+        <div id="eventChart" class="chart"></div>
+        <div class="legend"><span>Opened / focused</span><span class="closes">Closed / left</span></div>
+        <div class="note">Open/close counts represent tracked sessions: entering the application counts as open, and leaving it or becoming idle counts as close.</div>
+      </section>
+
+      <section class="section">
+        <h2>More analytics</h2>
+        <div class="analytics">
+          <div class="card"><small>Average per active day</small><strong id="average">0m</strong></div>
+          <div class="card"><small>Longest day</small><strong id="longest">0m</strong></div>
+          <div class="card"><small>Most active day</small><strong id="mostActive">—</strong></div>
+          <div class="card"><small>Average sessions/day</small><strong id="sessions">0</strong></div>
+        </div>
+      </section>
+    </main>
+    <script src="application.js"></script>
+  </body>
+</html>

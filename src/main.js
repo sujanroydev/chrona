@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { isUserActive, getForegroundApplication } from "./windows.js";
 import {
   addUsage,
+  recordApplicationEvent,
   getUsage,
   getRecentUsage,
   getDayUsage,
@@ -24,6 +25,8 @@ let tray;
 let timer;
 let lastCheck = Date.now();
 let running = true;
+let currentApplication = null;
+let currentApplicationOpen = false;
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -83,8 +86,26 @@ function track() {
   const elapsed = Math.max(0, Math.min(now - lastCheck, 60_000));
   lastCheck = now;
 
-  if (running && isUserActive(IDLE_LIMIT)) {
-    addUsage(elapsed / 1000, getForegroundApplication());
+  const active = running && isUserActive(IDLE_LIMIT);
+  const foregroundApplication = active ? getForegroundApplication() : null;
+
+  if (active) {
+    const application = foregroundApplication || "Unknown";
+    addUsage(elapsed / 1000, application);
+
+    if (!currentApplicationOpen || currentApplication !== application) {
+      if (currentApplicationOpen && currentApplication) {
+        recordApplicationEvent(currentApplication, "close");
+      }
+
+      currentApplication = application;
+      currentApplicationOpen = true;
+      recordApplicationEvent(application, "open");
+    }
+  } else if (currentApplicationOpen && currentApplication) {
+    recordApplicationEvent(currentApplication, "close");
+    currentApplicationOpen = false;
+    currentApplication = null;
   }
 
   updateUI();
@@ -105,6 +126,11 @@ function createTray() {
       label: "Pause tracking",
       click: () => {
         running = false;
+        if (currentApplicationOpen && currentApplication) {
+          recordApplicationEvent(currentApplication, "close");
+          currentApplicationOpen = false;
+          currentApplication = null;
+        }
         updateUI();
       },
     },
@@ -163,6 +189,11 @@ ipcMain.handle("get-day-usage", (_, date) => {
 });
 
 ipcMain.on("toggle-tracking", (_, value) => {
+  if (!value && currentApplicationOpen && currentApplication) {
+    recordApplicationEvent(currentApplication, "close");
+    currentApplicationOpen = false;
+    currentApplication = null;
+  }
   running = value;
   lastCheck = Date.now();
   updateUI();
