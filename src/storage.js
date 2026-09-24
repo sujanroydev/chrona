@@ -101,6 +101,28 @@ export function getDayUsage(date) {
   return dayUsage(data, date);
 }
 
+export function getApplicationUsage(application, days = 30) {
+  const data = load();
+  const name = String(application || "").trim();
+  const count = Math.max(1, Math.min(Number(days) || 30, 365));
+  const result = [];
+
+  for (let i = count - 1; i >= 0; i--) {
+    const date = dateKey(previousDate(i));
+    const day = normalizeDay(data[date]);
+    result.push({
+      date,
+      seconds: Math.floor(Number(day.apps[name]) || 0),
+    });
+  }
+
+  return {
+    application: name,
+    days: result,
+    total: result.reduce((sum, day) => sum + day.seconds, 0),
+  };
+}
+
 export function getRecentUsage(days = 30) {
   const data = load();
   const count = Math.max(1, Math.min(Number(days) || 30, 365));

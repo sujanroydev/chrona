@@ -2,7 +2,13 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isUserActive, getForegroundApplication } from "./windows.js";
-import { addUsage, getUsage, getRecentUsage, getDayUsage } from "./storage.js";
+import {
+  addUsage,
+  getUsage,
+  getRecentUsage,
+  getDayUsage,
+  getApplicationUsage,
+} from "./storage.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -138,6 +144,14 @@ ipcMain.handle("get-state", () => {
 
 ipcMain.handle("get-usage-history", (_, days = 30) => {
   return getRecentUsage(days);
+});
+
+ipcMain.handle("get-application-usage", (_, application, days = 30) => {
+  if (typeof application !== "string" || !application.trim()) {
+    throw new Error("Invalid application");
+  }
+
+  return getApplicationUsage(application, days);
 });
 
 ipcMain.handle("get-day-usage", (_, date) => {
