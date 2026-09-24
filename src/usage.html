@@ -211,34 +211,78 @@
 
       .timeline {
         position: relative;
-        height: 92px;
-        margin-top: 28px;
-        border-bottom: 2px solid #111827;
-        border-left: 2px solid #111827;
+        height: 118px;
+        margin-top: 22px;
+        overflow: visible;
+      }
+      .timeline-axis {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 86px;
+        border-bottom: 1px solid #dfe3e8;
+        background: #fbfcfd;
         overflow: hidden;
-        background: #fff;
+        border-radius: 10px;
       }
       .timeline-grid {
         position: absolute;
         inset: 0;
-        background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(20% - 1px), #eef0f3 calc(20% - 1px), #eef0f3 20%);
+        background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(12.5% - 1px), #e9edf2 calc(12.5% - 1px), #e9edf2 12.5%);
         pointer-events: none;
       }
-      .timeline-track { position: absolute; left: 0; right: 0; top: 31px; height: 25px; }
+      .timeline-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 28px;
+        height: 32px;
+      }
       .timeline-segment {
         position: absolute;
         top: 0;
-        height: 25px;
-        min-width: 2px;
-        border-radius: 4px;
+        height: 32px;
+        min-width: 3px;
+        border-radius: 6px;
         background: #a8e617;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
       }
-      .timeline-labels { display: flex; justify-content: space-between; padding: 7px 0 0; font-size: 11px; font-weight: 600; color: #6b7280; }
+      .timeline-segment::after {
+        content: '';
+        position: absolute;
+        top: 7px;
+        right: 3px;
+        width: 3px;
+        height: 18px;
+        border-radius: 2px;
+        background: rgba(17,24,39,.18);
+      }
+      .timeline-caption {
+        position: absolute;
+        left: 10px;
+        top: 9px;
+        z-index: 2;
+        font-size: 11px;
+        font-weight: 650;
+        color: #374151;
+        pointer-events: none;
+      }
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        padding: 94px 0 0;
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+      }
       .session-list { margin-top: 16px; display: grid; gap: 8px; }
       .session { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; background: #f8fafc; border-radius: 9px; font-size: 12px; }
       .session-time { font-weight: 600; color: #111827; }
       .session-duration { color: #6b7280; }
+      .timeline-help { margin-top: 10px; font-size: 11px; color: #6b7280; }
+      .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 3px; background: #a8e617; margin-right: 5px; }
+      .legend-gap { margin-left: 14px; }
       .analytics {
         margin-top: 16px;
         display: grid;
@@ -314,12 +358,16 @@
         </div>
 
         <div class="timeline" id="activeTimeline">
-          <div class="timeline-grid"></div>
-          <div class="timeline-track" id="activeTrack"></div>
+          <div class="timeline-axis">
+            <div class="timeline-grid"></div>
+            <div class="timeline-caption">Active time</div>
+            <div class="timeline-track" id="activeTrack"></div>
+          </div>
+          <div class="timeline-labels">
+            <span>12 AM</span><span>3 AM</span><span>6 AM</span><span>9 AM</span><span>12 PM</span><span>3 PM</span><span>6 PM</span><span>9 PM</span><span>12 AM</span>
+          </div>
         </div>
-        <div class="timeline-labels">
-          <span>00</span><span>05</span><span>10</span><span>15</span><span>20</span><span>24</span>
-        </div>
+        <div class="timeline-help"><span class="legend-dot"></span> Green = active time <span class="legend-gap">Blank = inactive</span></div>
         <div class="session-list" id="activeSessionList"></div>
       </section>
 

@@ -142,9 +142,10 @@ function renderOverallActivity(day) {
 
     const segment = document.createElement("div");
     segment.className = "timeline-segment";
+    segment.setAttribute("aria-label", `${formatClock(open)} to ${formatClock(close)}, ${formatTime((close - open) / 1000)}`);
     segment.style.left = `${((open - dayStart) / dayDuration) * 100}%`;
     segment.style.width = `${((close - open) / dayDuration) * 100}%`;
-    segment.title = `${formatClock(open)} – ${formatClock(close)}`;
+    segment.title = `${formatClock(open)} – ${formatClock(close)} · ${formatTime((close - open) / 1000)}`;
     activeTrack.appendChild(segment);
 
     const row = document.createElement("div");
