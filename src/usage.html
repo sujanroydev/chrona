@@ -209,62 +209,36 @@
         background: #4f46e5;
       }
 
-      .event-chart {
-        margin-top: 18px;
-        display: flex;
-        align-items: flex-end;
-        gap: 8px;
-        height: 220px;
-        overflow-x: auto;
-        padding-bottom: 2px;
+      .timeline {
+        position: relative;
+        height: 92px;
+        margin-top: 28px;
+        border-bottom: 2px solid #111827;
+        border-left: 2px solid #111827;
+        overflow: hidden;
+        background: #fff;
       }
-      .event-item {
-        flex: 1 0 52px;
-        min-width: 52px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 7px;
+      .timeline-grid {
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(20% - 1px), #eef0f3 calc(20% - 1px), #eef0f3 20%);
+        pointer-events: none;
       }
-      .event-value {
-        font-size: 10px;
-        color: #6b7280;
-        min-height: 13px;
+      .timeline-track { position: absolute; left: 0; right: 0; top: 31px; height: 25px; }
+      .timeline-segment {
+        position: absolute;
+        top: 0;
+        height: 25px;
+        min-width: 2px;
+        border-radius: 4px;
+        background: #a8e617;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
       }
-      .event-wrap {
-        height: 165px;
-        width: 100%;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        gap: 3px;
-      }
-      .event-bar {
-        width: 14px;
-        min-height: 2px;
-        border-radius: 5px 5px 2px 2px;
-      }
-      .open-bar { background: #111827; }
-      .close-bar { background: #9ca3af; }
-      .legend {
-        display: flex;
-        gap: 16px;
-        margin-top: 12px;
-        color: #6b7280;
-        font-size: 12px;
-      }
-      .legend span::before {
-        content: "";
-        display: inline-block;
-        width: 9px;
-        height: 9px;
-        border-radius: 3px;
-        margin-right: 5px;
-        background: #111827;
-      }
-      .legend .closes::before { background: #9ca3af; }
+      .timeline-labels { display: flex; justify-content: space-between; padding: 7px 0 0; font-size: 11px; font-weight: 600; color: #6b7280; }
+      .session-list { margin-top: 16px; display: grid; gap: 8px; }
+      .session { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; background: #f8fafc; border-radius: 9px; font-size: 12px; }
+      .session-time { font-weight: 600; color: #111827; }
+      .session-duration { color: #6b7280; }
       .analytics {
         margin-top: 16px;
         display: grid;
@@ -332,23 +306,29 @@
       </section>
 
       <section class="section">
-        <h2>Open & close activity</h2>
-        <div id="eventChart" class="event-chart"></div>
-        <div class="legend">
-          <span>Opened / focused</span>
-          <span class="closes">Closed / left</span>
+        <div class="section-head">
+          <div>
+            <h2>Overall active time</h2>
+            <div class="section-subtitle">Highlighted periods show when the computer was actively used.</div>
+          </div>
         </div>
-        <div class="hint">
-          Counts are based on tracked application sessions for each day.
+
+        <div class="timeline" id="activeTimeline">
+          <div class="timeline-grid"></div>
+          <div class="timeline-track" id="activeTrack"></div>
         </div>
+        <div class="timeline-labels">
+          <span>00</span><span>05</span><span>10</span><span>15</span><span>20</span><span>24</span>
+        </div>
+        <div class="session-list" id="activeSessionList"></div>
       </section>
 
       <section class="section">
         <h2>Day analytics</h2>
         <div class="analytics">
           <div class="card"><small>Active applications</small><strong id="activeApps">0</strong></div>
-          <div class="card"><small>Total opens</small><strong id="dayOpens">0</strong></div>
-          <div class="card"><small>Total closes</small><strong id="dayCloses">0</strong></div>
+          <div class="card"><small>Overall active time</small><strong id="activeTime">0m</strong></div>
+          <div class="card"><small>Active sessions</small><strong id="daySessions">0</strong></div>
           <div class="card"><small>Top application</small><strong id="topApp">—</strong></div>
           <div class="card"><small>Average per application</small><strong id="avgApp">0m</strong></div>
           <div class="card"><small>Largest share</small><strong id="topShare">0%</strong></div>
@@ -367,11 +347,9 @@
         </div>
       </section>
 
-        <div class="hint">
-          Click a day to see its applications, or click an application to see
-          its last 30 days.
-        </div>
-      </section>
+      <div class="hint">
+        Click a day to see its applications, or click an application to see its last 30 days.
+      </div>
     </main>
     <script src="usage.js"></script>
   </body>

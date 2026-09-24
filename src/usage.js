@@ -1,15 +1,15 @@
 const chart = document.querySelector("#chart");
-const chartTitle = document.querySelector("#chartTitle");
 const detailDate = document.querySelector("#detailDate");
 const detailTotal = document.querySelector("#detailTotal");
 const apps = document.querySelector("#apps");
-const eventChart = document.querySelector("#eventChart");
+const activeTrack = document.querySelector("#activeTrack");
+const activeSessionList = document.querySelector("#activeSessionList");
 const activeApps = document.querySelector("#activeApps");
-const dayOpens = document.querySelector("#dayOpens");
-const dayCloses = document.querySelector("#dayCloses");
+const activeTime = document.querySelector("#activeTime");
 const topApp = document.querySelector("#topApp");
 const avgApp = document.querySelector("#avgApp");
 const topShare = document.querySelector("#topShare");
+const daySessions = document.querySelector("#daySessions");
 const rangeTotal = document.querySelector("#rangeTotal");
 const rangeAverage = document.querySelector("#rangeAverage");
 const rangeActiveDays = document.querySelector("#rangeActiveDays");
@@ -17,7 +17,6 @@ const rangePeak = document.querySelector("#rangePeak");
 const rangeApps = document.querySelector("#rangeApps");
 const rangeSessions = document.querySelector("#rangeSessions");
 const back = document.querySelector("#back");
-const detailBack = document.querySelector("#detailBack");
 
 let currentHistory = [];
 let selectedDate = null;
@@ -35,10 +34,7 @@ function parseDate(date) {
 }
 
 function formatDate(date) {
-  return parseDate(date).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+  return parseDate(date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function formatFullDate(date) {
@@ -48,6 +44,10 @@ function formatFullDate(date) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatClock(timestamp) {
+  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function renderChart(history, selected) {
@@ -80,20 +80,16 @@ function renderChart(history, selected) {
     chart.appendChild(item);
   }
 
-  if (!history.length) {
-    chart.innerHTML = '<div class="empty">No usage recorded yet.</div>';
-  }
+  if (!history.length) chart.innerHTML = '<div class="empty">No usage recorded yet.</div>';
 }
 
 function renderApps(day) {
   detailDate.textContent = formatFullDate(day.date);
   detailTotal.textContent = formatTime(day.total);
-  detailBack.hidden = true;
   apps.innerHTML = "";
 
   if (!day.apps.length) {
-    apps.innerHTML =
-      '<div class="empty">No application usage recorded for this day.</div>';
+    apps.innerHTML = '<div class="empty">No application usage recorded for this day.</div>';
     return;
   }
 
@@ -123,71 +119,64 @@ function renderApps(day) {
     time.textContent = formatTime(app.seconds);
 
     row.append(name, track, time);
-    row.addEventListener("click", () => selectApplication(app.name));
+    row.addEventListener("click", () => {
+      window.location.href = `application.html?app=${encodeURIComponent(app.name)}`;
+    });
     apps.appendChild(row);
   }
 }
 
-function renderEvents(day) {
-  eventChart.innerHTML = "";
-  const max = Math.max(
-    ...day.apps.flatMap((app) => [app.opens, app.closes]),
-    1,
-  );
+function renderOverallActivity(day) {
+  activeTrack.innerHTML = "";
+  activeSessionList.innerHTML = "";
 
-  const rows = day.apps.filter((app) => app.opens || app.closes);
+  const sessions = Array.isArray(day.activeSessions) ? day.activeSessions : [];
+  const dayStart = new Date(`${day.date}T00:00:00`).getTime();
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  const dayDuration = 24 * 60 * 60 * 1000;
 
-  if (!rows.length) {
-    eventChart.innerHTML =
-      '<div class="empty">No open/close activity recorded for this day.</div>';
-    return;
+  for (const session of sessions) {
+    const open = Math.max(Number(session.open), dayStart);
+    const close = Math.min(Number(session.close), dayEnd);
+    if (!Number.isFinite(open) || !Number.isFinite(close) || close <= open) continue;
+
+    const segment = document.createElement("div");
+    segment.className = "timeline-segment";
+    segment.style.left = `${((open - dayStart) / dayDuration) * 100}%`;
+    segment.style.width = `${((close - open) / dayDuration) * 100}%`;
+    segment.title = `${formatClock(open)} – ${formatClock(close)}`;
+    activeTrack.appendChild(segment);
+
+    const row = document.createElement("div");
+    row.className = "session";
+    const time = document.createElement("span");
+    time.className = "session-time";
+    time.textContent = `${formatClock(open)} – ${formatClock(close)}`;
+    const duration = document.createElement("span");
+    duration.className = "session-duration";
+    duration.textContent = formatTime((close - open) / 1000);
+    row.append(time, duration);
+    activeSessionList.appendChild(row);
   }
 
-  for (const app of rows) {
-    const item = document.createElement("div");
-    item.className = "event-item";
-    item.title = `${app.name} — ${app.opens} opens, ${app.closes} closes`;
-
-    const value = document.createElement("div");
-    value.className = "event-value";
-    value.textContent = `${app.opens}/${app.closes}`;
-
-    const wrap = document.createElement("div");
-    wrap.className = "event-wrap";
-
-    const openBar = document.createElement("div");
-    openBar.className = "event-bar open-bar";
-    openBar.style.height = `${Math.max((app.opens / max) * 100, app.opens ? 3 : 0)}%`;
-
-    const closeBar = document.createElement("div");
-    closeBar.className = "event-bar close-bar";
-    closeBar.style.height = `${Math.max((app.closes / max) * 100, app.closes ? 3 : 0)}%`;
-
-    const date = document.createElement("div");
-    date.className = "date";
-    date.textContent = app.name.length > 9 ? `${app.name.slice(0, 8)}…` : app.name;
-
-    wrap.append(openBar, closeBar);
-    item.append(value, wrap, date);
-    eventChart.appendChild(item);
+  if (!sessions.length) {
+    activeSessionList.innerHTML = '<div class="empty">No recorded active periods for this day.</div>';
   }
 }
 
 function renderDayAnalytics(day) {
   const appsWithUsage = day.apps.filter((app) => app.seconds > 0);
-  const opens = day.apps.reduce((sum, app) => sum + app.opens, 0);
-  const closes = day.apps.reduce((sum, app) => sum + app.closes, 0);
   const top = appsWithUsage[0];
   const average = appsWithUsage.length ? day.total / appsWithUsage.length : 0;
   const share = day.total && top ? (top.seconds / day.total) * 100 : 0;
 
   activeApps.textContent = appsWithUsage.length;
-  dayOpens.textContent = opens;
-  dayCloses.textContent = closes;
+  activeTime.textContent = formatTime(day.total);
   topApp.textContent = top ? top.name : "—";
   topApp.title = top ? top.name : "";
   avgApp.textContent = formatTime(average);
   topShare.textContent = `${Math.round(share)}%`;
+  daySessions.textContent = day.sessions.length;
 }
 
 function renderRangeAnalytics(history) {
@@ -204,14 +193,12 @@ function renderRangeAnalytics(history) {
   for (const day of history) {
     for (const app of day.apps) {
       if (app.seconds > 0) applicationNames.add(app.name);
-      sessions += app.opens;
+      sessions += app.sessions.length;
     }
   }
 
   rangeTotal.textContent = formatTime(total);
-  rangeAverage.textContent = formatTime(
-    activeDays.length ? total / activeDays.length : 0,
-  );
+  rangeAverage.textContent = formatTime(activeDays.length ? total / activeDays.length : 0);
   rangeActiveDays.textContent = activeDays.length;
   rangePeak.textContent = peak.date ? formatDate(peak.date) : "—";
   rangeApps.textContent = applicationNames.size;
@@ -224,13 +211,9 @@ async function selectDay(date) {
 
   renderChart(currentHistory, date);
   renderApps(day);
-  renderEvents(day);
+  renderOverallActivity(day);
   renderDayAnalytics(day);
   renderRangeAnalytics(currentHistory);
-}
-
-async function selectApplication(application) {
-  window.location.href = `application.html?app=${encodeURIComponent(application)}`;
 }
 
 async function init() {
@@ -240,24 +223,11 @@ async function init() {
   renderChart(currentHistory, selectedDate);
   renderRangeAnalytics(currentHistory);
 
-  if (selectedDate) {
-    const day = await window.chrona.getDayUsage(selectedDate);
-    renderApps(day);
-    renderEvents(day);
-    renderDayAnalytics(day);
-  }
+  if (selectedDate) await selectDay(selectedDate);
 }
 
 back.addEventListener("click", () => {
   window.location.href = "index.html";
-});
-
-detailBack.addEventListener("click", async () => {
-  if (!selectedDate) return;
-  const day = await window.chrona.getDayUsage(selectedDate);
-  renderApps(day);
-  renderEvents(day);
-  renderDayAnalytics(day);
 });
 
 init();

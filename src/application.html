@@ -41,12 +41,7 @@
       .bar-value { font-size: 9px; color: #6b7280; min-height: 12px; }
       .bar-wrap { height: 170px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
       .bar { width: min(28px, 70%); min-height: 3px; border-radius: 6px 6px 2px 2px; background: #4f46e5; }
-      .open-bar { background: #111827; }
-      .close-bar { background: #9ca3af; }
       .date { font-size: 10px; color: #6b7280; white-space: nowrap; }
-      .legend { display: flex; gap: 16px; margin-top: 12px; color: #6b7280; font-size: 12px; }
-      .legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; background: #111827; }
-      .legend .closes::before { background: #9ca3af; }
       .analytics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
       .analytics .card strong { font-size: 18px; }
       .note { margin-top: 14px; color: #9ca3af; font-size: 11px; }
@@ -68,8 +63,8 @@
         <h2>Usage</h2>
         <div class="summary">
           <div class="card"><small>Total usage</small><strong id="total">0h 0m</strong></div>
-          <div class="card"><small>Times opened</small><strong id="opens">0</strong></div>
-          <div class="card"><small>Times closed</small><strong id="closes">0</strong></div>
+          <div class="card"><small>Sessions</small><strong id="sessionCount">0</strong></div>
+          <div class="card"><small>Active days</small><strong id="activeDays">0</strong></div>
         </div>
         <div id="usageChart" class="chart"></div>
       </section>
@@ -92,13 +87,6 @@
           <span>00</span><span>05</span><span>10</span><span>15</span><span>20</span><span>24</span>
         </div>
         <div class="session-list" id="sessionList"></div>
-      </section>
-
-      <section class="section">
-        <h2>Open & close activity</h2>
-        <div id="eventChart" class="chart"></div>
-        <div class="legend"><span>Opened / focused</span><span class="closes">Closed / left</span></div>
-        <div class="note">Open/close counts represent tracked sessions: entering the application counts as open, and leaving it or becoming idle counts as close.</div>
       </section>
 
       <section class="section">

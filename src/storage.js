@@ -8,7 +8,20 @@ function filePath() {
 
 function load() {
   try {
-    return JSON.parse(fs.readFileSync(filePath(), "utf8"));
+    const data = JSON.parse(fs.readFileSync(filePath(), "utf8"));
+    let changed = false;
+
+    // Sessions are the source of truth for application activity. Remove the
+    // old event counters from existing files during migration.
+    for (const value of Object.values(data)) {
+      if (value && typeof value === "object" && !Array.isArray(value) && "events" in value) {
+        delete value.events;
+        changed = true;
+      }
+    }
+
+    if (changed) save(data);
+    return data;
   } catch {
     return {};
   }
@@ -35,31 +48,74 @@ function previousDate(days) {
 
 function normalizeDay(value) {
   if (typeof value === "number") {
-    return { total: value, apps: {}, events: {}, sessions: {} };
+    return { total: value, apps: {}, sessions: {} };
   }
 
   if (!value || typeof value !== "object") {
-    return { total: 0, apps: {}, events: {}, sessions: {} };
+    return { total: 0, apps: {}, sessions: {} };
   }
 
   return {
     total: Number(value.total) || 0,
     apps: value.apps && typeof value.apps === "object" ? value.apps : {},
-    events:
-      value.events && typeof value.events === "object" ? value.events : {},
     sessions:
       value.sessions && typeof value.sessions === "object" ? value.sessions : {},
   };
 }
 
-function normalizeAppEvent(value) {
-  if (!value || typeof value !== "object") {
-    return { opens: 0, closes: 0 };
+function cleanSessions(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter(
+      (session) =>
+        Number.isFinite(Number(session?.open)) &&
+        Number.isFinite(Number(session?.close)) &&
+        Number(session.close) > Number(session.open),
+    )
+    .map((session) => ({
+      open: Number(session.open),
+      close: Number(session.close),
+    }))
+    .sort((a, b) => a.open - b.open);
+}
+
+function dayUsage(data, date) {
+  const day = normalizeDay(data[date]);
+  const apps = Object.entries(day.apps)
+    .map(([name, seconds]) => {
+      const sessions = cleanSessions(day.sessions[name]);
+      return {
+        name,
+        seconds: Math.floor(Number(seconds) || 0),
+        sessions,
+      };
+    })
+    .filter((app) => app.seconds > 0 || app.sessions.length > 0)
+    .sort((a, b) => b.seconds - a.seconds);
+
+  const sessions = apps
+    .flatMap((app) => app.sessions.map((session) => ({ ...session, application: app.name })))
+    .sort((a, b) => a.open - b.open);
+
+  // Merge app sessions into one overall activity timeline. This represents
+  // computer-active time rather than individual application switches.
+  const activeSessions = [];
+  for (const session of sessions) {
+    const previous = activeSessions[activeSessions.length - 1];
+    if (previous && session.open <= previous.close) {
+      previous.close = Math.max(previous.close, session.close);
+    } else {
+      activeSessions.push({ open: session.open, close: session.close });
+    }
   }
 
   return {
-    opens: Math.max(0, Number(value.opens) || 0),
-    closes: Math.max(0, Number(value.closes) || 0),
+    date,
+    total: Math.floor(day.total),
+    apps,
+    sessions,
+    activeSessions,
   };
 }
 
@@ -103,44 +159,6 @@ export function recordApplicationSession(application, openAt, closeAt) {
   save(data);
 }
 
-export function recordApplicationEvent(application, type) {
-  const appName = String(application || "Unknown").trim() || "Unknown";
-  if (type !== "open" && type !== "close") return;
-
-  const data = load();
-  const today = dateKey();
-  const day = normalizeDay(data[today]);
-  const event = normalizeAppEvent(day.events[appName]);
-
-  event[type === "open" ? "opens" : "closes"] += 1;
-  day.events[appName] = event;
-  data[today] = day;
-  save(data);
-}
-
-function dayUsage(data, date) {
-  const day = normalizeDay(data[date]);
-
-  return {
-    date,
-    total: Math.floor(day.total),
-    apps: Object.entries(day.apps)
-      .map(([name, seconds]) => ({
-        name,
-        seconds: Math.floor(Number(seconds) || 0),
-        opens: Math.floor(normalizeAppEvent(day.events[name]).opens),
-        closes: Math.floor(normalizeAppEvent(day.events[name]).closes),
-        sessions: Array.isArray(day.sessions[name])
-          ? day.sessions[name]
-              .filter((session) => Number.isFinite(session?.open) && Number.isFinite(session?.close))
-              .map((session) => ({ open: session.open, close: session.close }))
-          : [],
-      }))
-      .filter((app) => app.seconds > 0 || app.opens > 0 || app.closes > 0)
-      .sort((a, b) => b.seconds - a.seconds),
-  };
-}
-
 export function getUsage() {
   const data = load();
   const today = dateKey();
@@ -172,18 +190,10 @@ export function getApplicationUsage(application, days = 30) {
   for (let i = count - 1; i >= 0; i--) {
     const date = dateKey(previousDate(i));
     const day = normalizeDay(data[date]);
-    const event = normalizeAppEvent(day.events[name]);
-
     result.push({
       date,
       seconds: Math.floor(Number(day.apps[name]) || 0),
-      opens: Math.floor(event.opens),
-      closes: Math.floor(event.closes),
-      sessions: Array.isArray(day.sessions[name])
-        ? day.sessions[name]
-            .filter((session) => Number.isFinite(session?.open) && Number.isFinite(session?.close))
-            .map((session) => ({ open: session.open, close: session.close }))
-        : [],
+      sessions: cleanSessions(day.sessions[name]),
     });
   }
 
@@ -191,8 +201,7 @@ export function getApplicationUsage(application, days = 30) {
     application: name,
     days: result,
     total: result.reduce((sum, day) => sum + day.seconds, 0),
-    opens: result.reduce((sum, day) => sum + day.opens, 0),
-    closes: result.reduce((sum, day) => sum + day.closes, 0),
+    sessions: result.reduce((sum, day) => sum + day.sessions.length, 0),
   };
 }
 

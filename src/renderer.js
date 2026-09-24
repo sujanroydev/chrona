@@ -43,7 +43,7 @@ async function renderAnalytics() {
   const day = await window.chrona.getDayUsage(dateKey);
   const usedApps = day.apps.filter((app) => app.seconds > 0);
   const top = usedApps[0];
-  const sessionCount = day.apps.reduce((sum, app) => sum + app.opens, 0);
+  const sessionCount = day.sessions.length;
 
   activeApps.textContent = usedApps.length;
   sessions.textContent = sessionCount;

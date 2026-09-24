@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { isUserActive, getForegroundApplication } from "./windows.js";
 import {
   addUsage,
-  recordApplicationEvent,
   recordApplicationSession,
   getUsage,
   getRecentUsage,
@@ -98,18 +97,15 @@ function track() {
     if (!currentApplicationOpen || currentApplication !== application) {
       if (currentApplicationOpen && currentApplication && currentApplicationOpenedAt) {
         const closedAt = Date.now();
-        recordApplicationEvent(currentApplication, "close");
         recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
       }
 
       currentApplication = application;
       currentApplicationOpenedAt = Date.now();
       currentApplicationOpen = true;
-      recordApplicationEvent(application, "open");
     }
   } else if (currentApplicationOpen && currentApplication) {
     const closedAt = Date.now();
-    recordApplicationEvent(currentApplication, "close");
     if (currentApplicationOpenedAt) {
       recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
     }
@@ -138,8 +134,7 @@ function createTray() {
         running = false;
         if (currentApplicationOpen && currentApplication) {
           const closedAt = Date.now();
-          recordApplicationEvent(currentApplication, "close");
-          if (currentApplicationOpenedAt) {
+            if (currentApplicationOpenedAt) {
             recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
           }
           currentApplicationOpen = false;
@@ -203,6 +198,7 @@ ipcMain.handle("get-application-usage", (_, application, days = 30) => {
       const close = Math.min(now, dayEnd);
       if (close > open) day.sessions.push({ open, close, live: true });
     }
+    result.sessions = result.days.reduce((sum, day) => sum + day.sessions.length, 0);
   }
   return result;
 });
@@ -212,13 +208,27 @@ ipcMain.handle("get-day-usage", (_, date) => {
     throw new Error("Invalid date");
   }
 
-  return getDayUsage(date);
+  const result = getDayUsage(date);
+  if (currentApplicationOpen && currentApplication && currentApplicationOpenedAt) {
+    const now = Date.now();
+    const dayStart = new Date(`${date}T00:00:00`).getTime();
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+    const open = Math.max(currentApplicationOpenedAt, dayStart);
+    const close = Math.min(now, dayEnd);
+    if (close > open) {
+      const liveSession = { open, close, application: currentApplication, live: true };
+      result.sessions.push(liveSession);
+      result.activeSessions.push({ open, close, live: true });
+      result.sessions.sort((a, b) => a.open - b.open);
+      result.activeSessions.sort((a, b) => a.open - b.open);
+    }
+  }
+  return result;
 });
 
 ipcMain.on("toggle-tracking", (_, value) => {
   if (!value && currentApplicationOpen && currentApplication) {
     const closedAt = Date.now();
-    recordApplicationEvent(currentApplication, "close");
     if (currentApplicationOpenedAt) {
       recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
     }
@@ -256,7 +266,6 @@ app.whenReady().then(() => {
 app.on("before-quit", () => {
   if (currentApplicationOpen && currentApplication && currentApplicationOpenedAt) {
     const closedAt = Date.now();
-    recordApplicationEvent(currentApplication, "close");
     recordApplicationSession(currentApplication, currentApplicationOpenedAt, closedAt);
     currentApplicationOpen = false;
     currentApplication = null;

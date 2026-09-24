@@ -1,13 +1,12 @@
 const title = document.querySelector("#title");
 const total = document.querySelector("#total");
-const opens = document.querySelector("#opens");
-const closes = document.querySelector("#closes");
+const sessionCount = document.querySelector("#sessionCount");
+const activeDays = document.querySelector("#activeDays");
 const usageChart = document.querySelector("#usageChart");
-const eventChart = document.querySelector("#eventChart");
 const average = document.querySelector("#average");
 const longest = document.querySelector("#longest");
 const mostActive = document.querySelector("#mostActive");
-const sessions = document.querySelector("#sessions");
+const sessionsPerDay = document.querySelector("#sessionsPerDay");
 const back = document.querySelector("#back");
 const timelineDate = document.querySelector("#timelineDate");
 const timelineTrack = document.querySelector("#timelineTrack");
@@ -28,6 +27,14 @@ function parseDate(date) {
 
 function formatDate(date) {
   return parseDate(date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function formatClock(timestamp) {
+  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDateLong(date) {
+  return parseDate(date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
 function renderUsage(data) {
@@ -60,51 +67,6 @@ function renderUsage(data) {
   }
 }
 
-function renderEvents(data) {
-  eventChart.innerHTML = "";
-  const max = Math.max(...data.days.flatMap((day) => [day.opens, day.closes]), 1);
-
-  for (const day of data.days) {
-    const group = document.createElement("div");
-    group.className = "bar-item";
-    group.title = `${formatDate(day.date)} — ${day.opens} opens, ${day.closes} closes`;
-
-    const value = document.createElement("div");
-    value.className = "bar-value";
-    value.textContent = day.opens || day.closes ? `${day.opens}/${day.closes}` : "";
-
-    const wrap = document.createElement("div");
-    wrap.className = "bar-wrap";
-    wrap.style.display = "flex";
-    wrap.style.alignItems = "flex-end";
-    wrap.style.gap = "3px";
-
-    const openBar = document.createElement("div");
-    openBar.className = "bar open-bar";
-    openBar.style.height = `${day.opens ? Math.max((day.opens / max) * 100, 3) : 0}%`;
-
-    const closeBar = document.createElement("div");
-    closeBar.className = "bar close-bar";
-    closeBar.style.height = `${day.closes ? Math.max((day.closes / max) * 100, 3) : 0}%`;
-
-    const date = document.createElement("div");
-    date.className = "date";
-    date.textContent = formatDate(day.date);
-
-    wrap.append(openBar, closeBar);
-    group.append(value, wrap, date);
-    eventChart.appendChild(group);
-  }
-}
-
-function formatClock(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function formatDateLong(date) {
-  return parseDate(date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-}
-
 function renderTimeline(day) {
   timelineTrack.innerHTML = "";
   sessionList.innerHTML = "";
@@ -112,6 +74,7 @@ function renderTimeline(day) {
   const sessionsForDay = Array.isArray(day.sessions) ? day.sessions : [];
   const dayStart = new Date(`${day.date}T00:00:00`).getTime();
   const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  const dayDuration = 24 * 60 * 60 * 1000;
 
   for (const session of sessionsForDay) {
     const open = Math.max(Number(session.open), dayStart);
@@ -120,8 +83,8 @@ function renderTimeline(day) {
 
     const segment = document.createElement("div");
     segment.className = "timeline-segment";
-    segment.style.left = `${((open - dayStart) / (24 * 60 * 60 * 1000)) * 100}%`;
-    segment.style.width = `${((close - open) / (24 * 60 * 60 * 1000)) * 100}%`;
+    segment.style.left = `${((open - dayStart) / dayDuration) * 100}%`;
+    segment.style.width = `${((close - open) / dayDuration) * 100}%`;
     segment.title = `${formatClock(open)} – ${formatClock(close)}`;
     timelineTrack.appendChild(segment);
 
@@ -156,13 +119,14 @@ function renderAnalytics(data) {
   const activeDays = data.days.filter((day) => day.seconds > 0);
   const averageSeconds = activeDays.length ? data.total / activeDays.length : 0;
   const longestDay = data.days.reduce((best, day) => day.seconds > best.seconds ? day : best, { seconds: 0 });
-  const mostDay = longestDay.seconds ? formatDate(longestDay.date) : "—";
-  const sessionCount = data.opens;
 
+  total.textContent = formatTime(data.total);
+  sessionCount.textContent = data.sessions;
+  activeDays.textContent = activeDays.length;
   average.textContent = formatTime(averageSeconds);
   longest.textContent = formatTime(longestDay.seconds);
-  mostActive.textContent = mostDay;
-  sessions.textContent = (sessionCount / 30).toFixed(1);
+  mostActive.textContent = longestDay.seconds ? formatDate(longestDay.date) : "—";
+  sessionsPerDay.textContent = activeDays.length ? (data.sessions / activeDays.length).toFixed(1) : "0";
 }
 
 async function init() {
@@ -180,14 +144,9 @@ async function init() {
   applicationData = data;
   populateTimelineDates(data);
   timelineDate.value = data.days[data.days.length - 1]?.date || "";
-
-  total.textContent = formatTime(data.total);
-  opens.textContent = data.opens;
-  closes.textContent = data.closes;
-
   renderUsage(data);
-  renderEvents(data);
   renderAnalytics(data);
+
   const selectedDay = data.days[data.days.length - 1];
   if (selectedDay) renderTimeline(selectedDay);
 }
@@ -196,10 +155,9 @@ back.addEventListener("click", () => {
   window.location.href = "usage.html";
 });
 
-init();
-
-
 timelineDate.addEventListener("change", () => {
   const day = applicationData?.days.find((item) => item.date === timelineDate.value);
   if (day) renderTimeline(day);
 });
+
+init();
