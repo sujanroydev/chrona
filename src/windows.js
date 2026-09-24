@@ -15,14 +15,16 @@ const GetLastInputInfo = user32.func(
 
 const GetTickCount = kernel32.func("uint32 __stdcall GetTickCount()");
 
-const GetForegroundWindow = user32.func("HWND __stdcall GetForegroundWindow()");
+const GetForegroundWindow = user32.func(
+  "void * __stdcall GetForegroundWindow()",
+);
 
 const GetWindowThreadProcessId = user32.func(
-  "uint32 __stdcall GetWindowThreadProcessId(HWND hWnd, uint32 *lpdwProcessId)",
+  "uint32 __stdcall GetWindowThreadProcessId(void *hWnd, uint32 *lpdwProcessId)",
 );
 
 const GetWindowTextW = user32.func(
-  "int __stdcall GetWindowTextW(HWND hWnd, _Out_ uint16 *lpString, int nMaxCount)",
+  "int __stdcall GetWindowTextW(void *hWnd, _Out_ uint16 *lpString, int nMaxCount)",
 );
 
 export function getIdleTime() {
