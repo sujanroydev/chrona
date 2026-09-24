@@ -208,6 +208,81 @@
       .app-bar {
         background: #4f46e5;
       }
+
+      .event-chart {
+        margin-top: 18px;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        height: 220px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .event-item {
+        flex: 1 0 52px;
+        min-width: 52px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 7px;
+      }
+      .event-value {
+        font-size: 10px;
+        color: #6b7280;
+        min-height: 13px;
+      }
+      .event-wrap {
+        height: 165px;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 3px;
+      }
+      .event-bar {
+        width: 14px;
+        min-height: 2px;
+        border-radius: 5px 5px 2px 2px;
+      }
+      .open-bar { background: #111827; }
+      .close-bar { background: #9ca3af; }
+      .legend {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        color: #6b7280;
+        font-size: 12px;
+      }
+      .legend span::before {
+        content: "";
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        margin-right: 5px;
+        background: #111827;
+      }
+      .legend .closes::before { background: #9ca3af; }
+      .analytics {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .analytics .card {
+        padding: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+      }
+      .analytics small {
+        display: block;
+        color: #6b7280;
+        margin-bottom: 7px;
+      }
+      .analytics strong { font-size: 18px; }
+
       .hint {
         margin-top: 14px;
         color: #9ca3af;
@@ -220,6 +295,9 @@
         .app-row {
           grid-template-columns: 100px 1fr auto;
           gap: 8px;
+        }
+        .analytics {
+          grid-template-columns: 1fr 1fr;
         }
       }
     </style>
@@ -251,6 +329,44 @@
           <div id="detailTotal" class="total">0h 0m</div>
         </div>
         <div id="apps" class="apps"></div>
+      </section>
+
+      <section class="section">
+        <h2>Open & close activity</h2>
+        <div id="eventChart" class="event-chart"></div>
+        <div class="legend">
+          <span>Opened / focused</span>
+          <span class="closes">Closed / left</span>
+        </div>
+        <div class="hint">
+          Counts are based on tracked application sessions for each day.
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Day analytics</h2>
+        <div class="analytics">
+          <div class="card"><small>Active applications</small><strong id="activeApps">0</strong></div>
+          <div class="card"><small>Total opens</small><strong id="dayOpens">0</strong></div>
+          <div class="card"><small>Total closes</small><strong id="dayCloses">0</strong></div>
+          <div class="card"><small>Top application</small><strong id="topApp">—</strong></div>
+          <div class="card"><small>Average per application</small><strong id="avgApp">0m</strong></div>
+          <div class="card"><small>Largest share</small><strong id="topShare">0%</strong></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>30-day analytics</h2>
+        <div class="analytics">
+          <div class="card"><small>Total screen time</small><strong id="rangeTotal">0h 0m</strong></div>
+          <div class="card"><small>Average per day</small><strong id="rangeAverage">0m</strong></div>
+          <div class="card"><small>Active days</small><strong id="rangeActiveDays">0</strong></div>
+          <div class="card"><small>Peak day</small><strong id="rangePeak">—</strong></div>
+          <div class="card"><small>Applications used</small><strong id="rangeApps">0</strong></div>
+          <div class="card"><small>Total sessions</small><strong id="rangeSessions">0</strong></div>
+        </div>
+      </section>
+
         <div class="hint">
           Click a day to see its applications, or click an application to see
           its last 30 days.

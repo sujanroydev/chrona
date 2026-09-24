@@ -112,6 +112,21 @@
         color: #111827;
         border: 1px solid #e5e7eb;
       }
+      .analytics {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .analytics .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+      }
+      .analytics .card strong {
+        font-size: 18px;
+      }
       .note {
         text-align: center;
         margin-top: 16px;
@@ -139,6 +154,25 @@
         </div>
         <div class="card">
           <small>Last 7 days</small><strong id="week">0h 0m</strong>
+        </div>
+      </section>
+
+      <section class="analytics">
+        <div class="card">
+          <small>Active applications</small>
+          <strong id="activeApps">0</strong>
+        </div>
+        <div class="card">
+          <small>Today's sessions</small>
+          <strong id="sessions">0</strong>
+        </div>
+        <div class="card">
+          <small>Top application</small>
+          <strong id="topApp">—</strong>
+        </div>
+        <div class="card">
+          <small>Top app usage</small>
+          <strong id="topAppTime">0m</strong>
         </div>
       </section>
 
