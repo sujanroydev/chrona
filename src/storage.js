@@ -80,11 +80,41 @@ function cleanSessions(value) {
     .sort((a, b) => a.open - b.open);
 }
 
+function normalizeApplicationName(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getApplicationSessions(day, application) {
+  const target = normalizeApplicationName(application);
+  if (!target) return [];
+
+  // Current format: sessions are grouped by application name.
+  if (day.sessions && typeof day.sessions === "object" && !Array.isArray(day.sessions)) {
+    for (const [name, value] of Object.entries(day.sessions)) {
+      if (normalizeApplicationName(name) === target) {
+        return cleanSessions(value);
+      }
+    }
+  }
+
+  // Also accept the earlier flat session format in case an existing
+  // usage.json was written before sessions were grouped by application.
+  if (Array.isArray(day.sessions)) {
+    return cleanSessions(
+      day.sessions.filter((session) =>
+        normalizeApplicationName(session?.application) === target,
+      ),
+    );
+  }
+
+  return [];
+}
+
 function dayUsage(data, date) {
   const day = normalizeDay(data[date]);
   const apps = Object.entries(day.apps)
     .map(([name, seconds]) => {
-      const sessions = cleanSessions(day.sessions[name]);
+      const sessions = getApplicationSessions(day, name);
       return {
         name,
         seconds: Math.floor(Number(seconds) || 0),
@@ -193,7 +223,7 @@ export function getApplicationUsage(application, days = 30) {
     result.push({
       date,
       seconds: Math.floor(Number(day.apps[name]) || 0),
-      sessions: cleanSessions(day.sessions[name]),
+      sessions: getApplicationSessions(day, name),
     });
   }
 
