@@ -120,7 +120,7 @@ function renderApps(day) {
 
     row.append(name, track, time);
     row.addEventListener("click", () => {
-      window.location.href = `application.html?app=${encodeURIComponent(app.name)}`;
+      window.location.href = `application.html?app=${encodeURIComponent(app.name)}&date=${encodeURIComponent(selectedDate)}`;
     });
     apps.appendChild(row);
   }

@@ -18,7 +18,6 @@
       .section h2 { margin: 0; font-size: 16px; }
       .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
       .section-subtitle { margin-top: 5px; color: #6b7280; font-size: 12px; }
-      select { border: 1px solid #e5e7eb; border-radius: 9px; padding: 8px 10px; background: white; color: #111827; font: inherit; }
       .timeline {
         position: relative;
         height: 118px;
@@ -99,10 +98,13 @@
       .card small { display: block; color: #6b7280; margin-bottom: 7px; }
       .card strong { font-size: 21px; }
       .chart { margin-top: 20px; display: flex; align-items: flex-end; gap: 7px; height: 230px; overflow-x: auto; padding-bottom: 2px; }
-      .bar-item { flex: 1 0 42px; min-width: 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+      .bar-item { flex: 1 0 42px; min-width: 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; cursor: pointer; border-radius: 8px; outline: none; }
+      .bar-item:focus-visible { box-shadow: 0 0 0 2px #4f46e5; }
       .bar-value { font-size: 9px; color: #6b7280; min-height: 12px; }
       .bar-wrap { height: 170px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-      .bar { width: min(28px, 70%); min-height: 3px; border-radius: 6px 6px 2px 2px; background: #4f46e5; }
+      .bar { width: min(28px, 70%); min-height: 3px; border-radius: 6px 6px 2px 2px; background: #4f46e5; transition: background .15s, box-shadow .15s; }
+      .bar-item.selected .bar { background: #a8e617; box-shadow: 0 0 0 2px rgba(168,230,23,.25); }
+      .bar-item.selected .date, .bar-item.selected .bar-value { color: #111827; font-weight: 700; }
       .date { font-size: 10px; color: #6b7280; white-space: nowrap; }
       .analytics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
       .analytics .card strong { font-size: 18px; }
@@ -123,10 +125,11 @@
 
       <section class="section">
         <h2>Usage</h2>
+        <div class="section-subtitle" id="selectedDayLabel">Selected day</div>
         <div class="summary">
-          <div class="card"><small>Total usage</small><strong id="total">0h 0m</strong></div>
+          <div class="card"><small>Usage on selected day</small><strong id="total">0h 0m</strong></div>
           <div class="card"><small>Sessions</small><strong id="sessionCount">0</strong></div>
-          <div class="card"><small>Active days</small><strong id="activeDays">0</strong></div>
+          <div class="card"><small>Active</small><strong id="activeDays">No</strong></div>
         </div>
         <div id="usageChart" class="chart"></div>
       </section>
@@ -136,9 +139,8 @@
         <div class="section-head">
           <div>
             <h2>Daily activity</h2>
-            <div class="section-subtitle">Highlighted periods show when the application was in use.</div>
+            <div class="section-subtitle">Highlighted periods show when the application was in use on the selected day.</div>
           </div>
-          <select id="timelineDate" aria-label="Select day"></select>
         </div>
 
         <div class="timeline" id="timeline">
@@ -158,10 +160,10 @@
       <section class="section">
         <h2>More analytics</h2>
         <div class="analytics">
-          <div class="card"><small>Average per active day</small><strong id="average">0m</strong></div>
-          <div class="card"><small>Longest day</small><strong id="longest">0m</strong></div>
-          <div class="card"><small>Most active day</small><strong id="mostActive">—</strong></div>
-          <div class="card"><small>Average sessions/day</small><strong id="sessions">0</strong></div>
+          <div class="card"><small>Average session</small><strong id="average">0m</strong></div>
+          <div class="card"><small>Longest session</small><strong id="longest">0m</strong></div>
+          <div class="card"><small>Activity span</small><strong id="mostActive">—</strong></div>
+          <div class="card"><small>Day status</small><strong id="sessions">No usage</strong></div>
         </div>
       </section>
     </main>
