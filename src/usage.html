@@ -104,6 +104,15 @@
         opacity: 0.78;
         transform: translateY(-2px);
       }
+      .bar-item.selected .bar {
+        background: #a8e617;
+        box-shadow: 0 0 0 2px rgba(168, 230, 23, 0.22);
+      }
+      .bar-item.selected .bar-value,
+      .bar-item.selected .date {
+        color: #111827;
+        font-weight: 700;
+      }
       .bar-item.today .bar {
         background: #111827;
       }
@@ -229,7 +238,13 @@
       .timeline-grid {
         position: absolute;
         inset: 0;
-        background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(12.5% - 1px), #e9edf2 calc(12.5% - 1px), #e9edf2 12.5%);
+        background-image: repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent calc(12.5% - 1px),
+          #e9edf2 calc(12.5% - 1px),
+          #e9edf2 12.5%
+        );
         pointer-events: none;
       }
       .timeline-track {
@@ -245,18 +260,20 @@
         height: 32px;
         min-width: 3px;
         border-radius: 6px;
-        background: #a8e617;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+        background: linear-gradient(180deg, #c4ef2f 0%, #a8e617 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+          0 0 0 1px rgba(168, 230, 23, 0.25);
       }
       .timeline-segment::after {
-        content: '';
+        content: "";
         position: absolute;
         top: 7px;
         right: 3px;
         width: 3px;
         height: 18px;
         border-radius: 2px;
-        background: rgba(17,24,39,.18);
+        background: rgba(17, 24, 39, 0.18);
       }
       .timeline-caption {
         position: absolute;
@@ -276,13 +293,53 @@
         font-weight: 600;
         color: #6b7280;
       }
-      .session-list { margin-top: 16px; display: grid; gap: 8px; }
-      .session { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; background: #f8fafc; border-radius: 9px; font-size: 12px; }
-      .session-time { font-weight: 600; color: #111827; }
-      .session-duration { color: #6b7280; }
-      .timeline-help { margin-top: 10px; font-size: 11px; color: #6b7280; }
-      .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 3px; background: #a8e617; margin-right: 5px; }
-      .legend-gap { margin-left: 14px; }
+      .session-list {
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding-right: 6px;
+      }
+      .session-list::-webkit-scrollbar {
+        width: 8px;
+      }
+      .session-list::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 999px;
+      }
+      .session {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 10px;
+        background: #f8fafc;
+        border-radius: 9px;
+        font-size: 12px;
+      }
+      .session-time {
+        font-weight: 600;
+        color: #111827;
+      }
+      .session-duration {
+        color: #6b7280;
+      }
+      .timeline-help {
+        margin-top: 10px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .legend-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 3px;
+        background: #a8e617;
+        margin-right: 5px;
+      }
+      .legend-gap {
+        margin-left: 14px;
+      }
       .analytics {
         margin-top: 16px;
         display: grid;
@@ -299,7 +356,9 @@
         color: #6b7280;
         margin-bottom: 7px;
       }
-      .analytics strong { font-size: 18px; }
+      .analytics strong {
+        font-size: 18px;
+      }
 
       .hint {
         margin-top: 14px;
@@ -353,7 +412,9 @@
         <div class="section-head">
           <div>
             <h2>Overall active time</h2>
-            <div class="section-subtitle">Highlighted periods show when the computer was actively used.</div>
+            <div class="section-subtitle">
+              Highlighted periods show when the computer was actively used.
+            </div>
           </div>
         </div>
 
@@ -364,39 +425,72 @@
             <div class="timeline-track" id="activeTrack"></div>
           </div>
           <div class="timeline-labels">
-            <span>12 AM</span><span>3 AM</span><span>6 AM</span><span>9 AM</span><span>12 PM</span><span>3 PM</span><span>6 PM</span><span>9 PM</span><span>12 AM</span>
+            <span>12 AM</span><span>3 AM</span><span>6 AM</span><span>9 AM</span
+            ><span>12 PM</span><span>3 PM</span><span>6 PM</span
+            ><span>9 PM</span><span>12 AM</span>
           </div>
         </div>
-        <div class="timeline-help"><span class="legend-dot"></span> Green = active time <span class="legend-gap">Blank = inactive</span></div>
+        <div class="timeline-help">
+          <span class="legend-dot"></span> Green = active time
+          <span class="legend-gap">Blank = inactive</span>
+        </div>
         <div class="session-list" id="activeSessionList"></div>
       </section>
 
       <section class="section">
         <h2>Day analytics</h2>
         <div class="analytics">
-          <div class="card"><small>Active applications</small><strong id="activeApps">0</strong></div>
-          <div class="card"><small>Overall active time</small><strong id="activeTime">0m</strong></div>
-          <div class="card"><small>Active sessions</small><strong id="daySessions">0</strong></div>
-          <div class="card"><small>Top application</small><strong id="topApp">—</strong></div>
-          <div class="card"><small>Average per application</small><strong id="avgApp">0m</strong></div>
-          <div class="card"><small>Largest share</small><strong id="topShare">0%</strong></div>
+          <div class="card">
+            <small>Active applications</small><strong id="activeApps">0</strong>
+          </div>
+          <div class="card">
+            <small>Overall active time</small
+            ><strong id="activeTime">0m</strong>
+          </div>
+          <div class="card">
+            <small>Active sessions</small><strong id="daySessions">0</strong>
+          </div>
+          <div class="card">
+            <small>Top application</small><strong id="topApp">—</strong>
+          </div>
+          <div class="card">
+            <small>Average per application</small
+            ><strong id="avgApp">0m</strong>
+          </div>
+          <div class="card">
+            <small>Largest share</small><strong id="topShare">0%</strong>
+          </div>
         </div>
       </section>
 
       <section class="section">
         <h2>30-day analytics</h2>
         <div class="analytics">
-          <div class="card"><small>Total screen time</small><strong id="rangeTotal">0h 0m</strong></div>
-          <div class="card"><small>Average per day</small><strong id="rangeAverage">0m</strong></div>
-          <div class="card"><small>Active days</small><strong id="rangeActiveDays">0</strong></div>
-          <div class="card"><small>Peak day</small><strong id="rangePeak">—</strong></div>
-          <div class="card"><small>Applications used</small><strong id="rangeApps">0</strong></div>
-          <div class="card"><small>Total sessions</small><strong id="rangeSessions">0</strong></div>
+          <div class="card">
+            <small>Total screen time</small
+            ><strong id="rangeTotal">0h 0m</strong>
+          </div>
+          <div class="card">
+            <small>Average per day</small><strong id="rangeAverage">0m</strong>
+          </div>
+          <div class="card">
+            <small>Active days</small><strong id="rangeActiveDays">0</strong>
+          </div>
+          <div class="card">
+            <small>Peak day</small><strong id="rangePeak">—</strong>
+          </div>
+          <div class="card">
+            <small>Applications used</small><strong id="rangeApps">0</strong>
+          </div>
+          <div class="card">
+            <small>Total sessions</small><strong id="rangeSessions">0</strong>
+          </div>
         </div>
       </section>
 
       <div class="hint">
-        Click a day to see its applications, or click an application to see its last 30 days.
+        Click a day to see its applications, or click an application to see its
+        last 30 days.
       </div>
     </main>
     <script src="usage.js"></script>
