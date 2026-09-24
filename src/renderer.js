@@ -4,6 +4,7 @@ const week = document.querySelector("#week");
 const status = document.querySelector("#status");
 const statusText = document.querySelector("#statusText");
 const toggle = document.querySelector("#toggle");
+const usageButton = document.querySelector("#usageButton");
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -31,6 +32,9 @@ toggle.addEventListener("click", async () => {
   window.chrona.toggleTracking(!state.tracking);
 });
 
-window.chrona.onState(render);
+usageButton.addEventListener("click", () => {
+  window.location.href = "usage.html";
+});
 
+window.chrona.onState(render);
 window.chrona.getState().then(render);

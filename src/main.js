@@ -1,8 +1,8 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isUserActive } from "./windows.js";
-import { addUsage, getUsage } from "./storage.js";
+import { isUserActive, getForegroundApplication } from "./windows.js";
+import { addUsage, getUsage, getRecentUsage, getDayUsage } from "./storage.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,11 +28,11 @@ function formatTime(seconds) {
 function createWindow() {
   mainWindow = new BrowserWindow({
     icon: iconPath,
-    width: 430,
-    height: 570,
-    minWidth: 380,
-    minHeight: 500,
-    resizable: false,
+    width: 760,
+    height: 700,
+    minWidth: 600,
+    minHeight: 520,
+    resizable: true,
     show: false,
     autoHideMenuBar: true,
     title: "Chrona",
@@ -78,7 +78,7 @@ function track() {
   lastCheck = now;
 
   if (running && isUserActive(IDLE_LIMIT)) {
-    addUsage(elapsed / 1000);
+    addUsage(elapsed / 1000, getForegroundApplication());
   }
 
   updateUI();
@@ -136,6 +136,18 @@ ipcMain.handle("get-state", () => {
   };
 });
 
+ipcMain.handle("get-usage-history", (_, days = 30) => {
+  return getRecentUsage(days);
+});
+
+ipcMain.handle("get-day-usage", (_, date) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("Invalid date");
+  }
+
+  return getDayUsage(date);
+});
+
 ipcMain.on("toggle-tracking", (_, value) => {
   running = value;
   lastCheck = Date.now();
@@ -145,7 +157,6 @@ ipcMain.on("toggle-tracking", (_, value) => {
 app.whenReady().then(() => {
   app.setAppUserModelId("in.knowlet.chrona");
 
-  // Start with Windows after installation.
   app.setLoginItemSettings({
     openAtLogin: true,
     path: process.execPath,

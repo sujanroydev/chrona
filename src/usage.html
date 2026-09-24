@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chrona — Usage</title>
+    <style>
+      :root {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #202124;
+        background: #f7f8fa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 28px;
+      }
+      .page {
+        max-width: 700px;
+        margin: auto;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .back {
+        width: auto;
+        margin: 0;
+        padding: 8px 12px;
+        background: white;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+      }
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 650;
+      }
+      .subtitle {
+        color: #6b7280;
+        margin-top: 5px;
+        font-size: 13px;
+      }
+      .section {
+        margin-top: 22px;
+        padding: 20px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+      }
+      .section h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+      .chart {
+        margin-top: 22px;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        height: 230px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .bar-item {
+        flex: 1 0 52px;
+        min-width: 52px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+      }
+      .bar-value {
+        font-size: 10px;
+        color: #6b7280;
+        min-height: 13px;
+      }
+      .bar-wrap {
+        height: 175px;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .bar {
+        width: min(34px, 70%);
+        min-height: 3px;
+        border-radius: 7px 7px 3px 3px;
+        background: #4f46e5;
+        transition:
+          opacity 0.15s,
+          transform 0.15s;
+      }
+      .bar-item:hover .bar {
+        opacity: 0.78;
+        transform: translateY(-2px);
+      }
+      .bar-item.today .bar {
+        background: #111827;
+      }
+      .date {
+        font-size: 11px;
+        color: #6b7280;
+        white-space: nowrap;
+      }
+      .empty {
+        color: #9ca3af;
+        text-align: center;
+        padding: 40px 10px;
+      }
+      .details {
+        margin-top: 22px;
+      }
+      .details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .details-header h2 {
+        margin: 0;
+      }
+      .total {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .apps {
+        margin-top: 18px;
+        display: grid;
+        gap: 12px;
+      }
+      .app-row {
+        display: grid;
+        grid-template-columns: minmax(110px, 1fr) 3fr auto;
+        align-items: center;
+        gap: 12px;
+      }
+      .app-name {
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .track {
+        height: 10px;
+        background: #eef0f4;
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .fill {
+        height: 100%;
+        border-radius: inherit;
+        background: #4f46e5;
+      }
+      .app-time {
+        font-size: 12px;
+        color: #6b7280;
+        min-width: 55px;
+        text-align: right;
+      }
+      .hint {
+        margin-top: 14px;
+        color: #9ca3af;
+        font-size: 11px;
+      }
+      @media (max-width: 620px) {
+        body {
+          padding: 18px;
+        }
+        .app-row {
+          grid-template-columns: 100px 1fr auto;
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="top">
+        <button class="back" id="back">← Back</button>
+        <div>
+          <h1>Usage</h1>
+          <div class="subtitle">Select a day to see application usage</div>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2>Daily usage</h2>
+        <div id="chart" class="chart"></div>
+      </section>
+
+      <section class="section details">
+        <div class="details-header">
+          <div>
+            <h2 id="detailDate">Today</h2>
+            <div class="subtitle">Application usage</div>
+          </div>
+          <div id="detailTotal" class="total">0h 0m</div>
+        </div>
+        <div id="apps" class="apps"></div>
+        <div class="hint">Click another bar above to inspect that day.</div>
+      </section>
+    </main>
+    <script src="usage.js"></script>
+  </body>
+</html>

@@ -14,55 +14,46 @@
         color: #202124;
         background: #f7f8fa;
       }
-
       * {
         box-sizing: border-box;
       }
-
       body {
         margin: 0;
-        padding: 24px;
+        padding: 28px;
       }
-
       .app {
-        max-width: 380px;
+        max-width: 520px;
         margin: auto;
       }
-
       h1 {
         margin: 0;
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 650;
       }
-
       .subtitle {
         color: #6b7280;
         margin-top: 5px;
         font-size: 13px;
       }
-
       .hero {
         margin-top: 24px;
-        padding: 28px 20px;
+        padding: 30px 20px;
         text-align: center;
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 18px;
       }
-
       .time {
-        font-size: 48px;
+        font-size: 52px;
         line-height: 1;
         font-weight: 700;
         letter-spacing: -2px;
       }
-
       .label {
         margin-top: 10px;
         color: #6b7280;
         font-size: 14px;
       }
-
       .status {
         margin-top: 16px;
         display: inline-flex;
@@ -73,42 +64,35 @@
         background: #f1f5f9;
         font-size: 12px;
       }
-
       .dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         background: #9ca3af;
       }
-
       .active .dot {
         background: #22c55e;
       }
-
       .stats {
         margin-top: 16px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
-
       .card {
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 14px;
         padding: 16px;
       }
-
       .card small {
         color: #6b7280;
         display: block;
         margin-bottom: 7px;
       }
-
       .card strong {
         font-size: 20px;
       }
-
       button {
         width: 100%;
         margin-top: 16px;
@@ -120,11 +104,14 @@
         font-size: 14px;
         cursor: pointer;
       }
-
       button:hover {
         opacity: 0.9;
       }
-
+      .secondary {
+        background: white;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+      }
       .note {
         text-align: center;
         margin-top: 16px;
@@ -141,30 +128,24 @@
       <section class="hero">
         <div id="today" class="time">0h 0m</div>
         <div class="label">Today's screen time</div>
-
         <div id="status" class="status">
-          <span class="dot"></span>
-          <span id="statusText">Checking...</span>
+          <span class="dot"></span><span id="statusText">Checking...</span>
         </div>
       </section>
 
       <section class="stats">
         <div class="card">
-          <small>Yesterday</small>
-          <strong id="yesterday">0h 0m</strong>
+          <small>Yesterday</small><strong id="yesterday">0h 0m</strong>
         </div>
-
         <div class="card">
-          <small>Last 7 days</small>
-          <strong id="week">0h 0m</strong>
+          <small>Last 7 days</small><strong id="week">0h 0m</strong>
         </div>
       </section>
 
+      <button id="usageButton" class="secondary">View usage</button>
       <button id="toggle">Pause tracking</button>
-
       <div class="note">Runs automatically in the background</div>
     </main>
-
     <script src="renderer.js"></script>
   </body>
 </html>
