@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, shell } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isUserActive, getForegroundApplication } from "./windows.js";
@@ -51,6 +51,20 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    if (/^https?:\/\//i.test(url)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
   });
 
   mainWindow.loadFile(path.join(__dirname, "index.html"));
@@ -184,6 +198,14 @@ function createTray() {
     mainWindow.focus();
   });
 }
+
+ipcMain.handle("open-external", (_, url) => {
+  if (typeof url !== "string" || !/^https?:\/\//i.test(url)) {
+    throw new Error("Invalid external URL");
+  }
+
+  return shell.openExternal(url);
+});
 
 ipcMain.handle("get-state", () => {
   const usage = getUsage();

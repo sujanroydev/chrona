@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("chrona", {
   getApplicationUsage: (application, days) =>
     ipcRenderer.invoke("get-application-usage", application, days),
   toggleTracking: (value) => ipcRenderer.send("toggle-tracking", value),
+  openExternal: (url) => ipcRenderer.invoke("open-external", url),
   onState: (callback) => {
     ipcRenderer.on("state", (_, state) => callback(state));
   },
