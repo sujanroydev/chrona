@@ -25,6 +25,28 @@
         max-width: 520px;
         margin: auto;
       }
+      .support-link {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 11px;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #111827;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+        backdrop-filter: blur(8px);
+      }
+      .support-link:hover {
+        background: #f8fafc;
+      }
       h1 {
         margin: 0;
         font-size: 26px;
@@ -136,6 +158,10 @@
     </style>
   </head>
   <body>
+    <a class="support-link" href="support.html" aria-label="Help and support">
+      Help &amp; Support
+    </a>
+
     <main class="app">
       <h1>Chrona</h1>
       <div class="subtitle">Simple activity tracking</div>

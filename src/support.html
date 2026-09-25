@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chrona — Help &amp; Support</title>
+    <style>
+      :root {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #202124;
+        background: #f7f8fa;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 28px; }
+      .page { max-width: 760px; margin: auto; }
+      .corner-nav {
+        position: fixed; top: 18px; left: 18px; z-index: 10;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 11px; background: rgba(255,255,255,.94);
+        color: #111827; border: 1px solid #e5e7eb; border-radius: 9px;
+        cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
+        box-shadow: 0 2px 8px rgba(15,23,42,.05); backdrop-filter: blur(8px);
+      }
+      .corner-nav:hover { background: #f8fafc; }
+      .top { padding: 4px 0 0; }
+      h1 { margin: 0; font-size: 26px; font-weight: 650; }
+      .subtitle { color: #6b7280; margin-top: 5px; font-size: 13px; }
+      .section {
+        margin-top: 18px; padding: 20px; background: white;
+        border: 1px solid #e5e7eb; border-radius: 16px;
+      }
+      .section h2 { margin: 0; font-size: 16px; }
+      .section p { margin: 9px 0 0; color: #6b7280; font-size: 13px; line-height: 1.65; }
+      .steps { margin: 12px 0 0; padding-left: 20px; color: #4b5563; font-size: 13px; line-height: 1.7; }
+      .issue-list { margin-top: 12px; display: grid; gap: 10px; }
+      .issue { padding: 12px; background: #f8fafc; border-radius: 10px; }
+      .issue strong { display: block; font-size: 13px; color: #111827; }
+      .issue span { display: block; margin-top: 4px; color: #6b7280; font-size: 12px; line-height: 1.55; }
+      .links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+      .link-card {
+        display: block; padding: 14px; border: 1px solid #e5e7eb; border-radius: 11px;
+        text-decoration: none; color: #111827; background: #fff;
+      }
+      .link-card:hover { background: #f8fafc; }
+      .link-card strong { display: block; font-size: 13px; }
+      .link-card span { display: block; margin-top: 4px; color: #6b7280; font-size: 11px; line-height: 1.45; }
+      .note { margin-top: 18px; text-align: center; color: #9ca3af; font-size: 11px; }
+      @media (max-width: 600px) {
+        body { padding: 18px; }
+        .links { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="corner-nav" id="back" type="button" aria-label="Go back">← Back</button>
+
+    <main class="page">
+      <div class="top">
+        <h1>Help &amp; Support</h1>
+        <div class="subtitle">Learn how Chrona works and what to do when something goes wrong.</div>
+      </div>
+
+      <section class="section">
+        <h2>How Chrona works</h2>
+        <p>Chrona records active computer usage and the foreground application while you are using Windows. Usage is grouped into days and sessions so you can review your activity later.</p>
+        <ol class="steps">
+          <li>Keep Chrona running while you use your computer.</li>
+          <li>Open <strong>Usage</strong> to review daily activity.</li>
+          <li>Select an application to inspect its 30-day history.</li>
+        </ol>
+      </section>
+
+      <section class="section">
+        <h2>Common issues</h2>
+        <div class="issue-list">
+          <div class="issue"><strong>Usage is not increasing</strong><span>Check the home screen status. If tracking is paused, click “Resume tracking”. Also make sure Chrona is still running.</span></div>
+          <div class="issue"><strong>An application is missing</strong><span>Chrona identifies the foreground Windows process. Some system processes or short-lived applications may not appear as expected.</span></div>
+          <div class="issue"><strong>The time looks incorrect</strong><span>Chrona depends on Windows activity and idle information. Restarting Chrona can help after a system sleep, restart, or unusual process state.</span></div>
+          <div class="issue"><strong>Data disappeared</strong><span>Avoid deleting or editing Chrona's local data files manually. If the problem continues, report the issue with the affected date and what happened.</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Issues &amp; feedback</h2>
+        <p>If Chrona behaves incorrectly, include the Chrona version, Windows version, affected date, and a short description of what you expected versus what happened. Screenshots are useful when reporting display problems.</p>
+        <div class="links">
+          <a class="link-card" href="https://github.com/sujanroydev/chrona/issues">
+            <strong>Report an issue</strong>
+            <span>Open the Chrona issue tracker on GitHub.</span>
+          </a>
+          <a class="link-card" href="https://github.com/sujanroydev/chrona">
+            <strong>Chrona on GitHub</strong>
+            <span>View the project, releases, and source code.</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Privacy</h2>
+        <p>Chrona is designed as a local Windows activity tracker. See the privacy policy included with your Chrona release for details about what data is collected, stored, and used.</p>
+      </section>
+
+      <section class="section">
+        <h2>About Chrona</h2>
+        <p>Chrona is a lightweight laptop activity tracker for Windows. It focuses on simple screen-time and application-usage history without unnecessary complexity.</p>
+      </section>
+
+      <div class="note">Need more help? Include as much useful diagnostic information as possible when reporting an issue.</div>
+    </main>
+    <script src="support.js"></script>
+  </body>
+</html>
