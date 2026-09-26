@@ -6,15 +6,123 @@ function filePath() {
   return path.join(app.getPath("userData"), "usage.json");
 }
 
-function load() {
+function backupPath() {
+  return path.join(app.getPath("userData"), "usage.json.bak");
+}
+
+function tempPath() {
+  return path.join(
+    app.getPath("userData"),
+    `usage.json.tmp-${process.pid}-${Date.now()}`,
+  );
+}
+
+function isValidData(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function readJson(file) {
   try {
-    const data = JSON.parse(fs.readFileSync(filePath(), "utf8"));
+    const raw = fs.readFileSync(file, "utf8");
+    const data = JSON.parse(raw);
+
+    if (!isValidData(data)) {
+      throw new Error("Usage data must be a JSON object");
+    }
+
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function quarantine(file, suffix) {
+  if (!fs.existsSync(file)) return;
+
+  try {
+    const target = `${file}.${suffix}-${Date.now()}`;
+    fs.renameSync(file, target);
+  } catch {
+    // Keep the original file if Windows does not allow the rename.
+  }
+}
+
+function writeFileSafely(file, data) {
+  const directory = path.dirname(file);
+  fs.mkdirSync(directory, { recursive: true });
+
+  const temporary = tempPath();
+  const serialized = JSON.stringify(data, null, 2);
+
+  let fd;
+
+  try {
+    fd = fs.openSync(temporary, "w");
+    fs.writeFileSync(fd, serialized, "utf8");
+    fs.fsyncSync(fd);
+    fs.closeSync(fd);
+    fd = undefined;
+
+    /*
+     * Windows does not reliably allow rename-overwrite. Copying the fully
+     * written temporary file keeps the normal write path simple. A previous
+     * valid version is kept in usage.json.bak so a failed/corrupt write can
+     * always be recovered on the next read.
+     */
+    fs.copyFileSync(temporary, file);
+  } finally {
+    if (fd !== undefined) {
+      try {
+        fs.closeSync(fd);
+      } catch {}
+    }
+
+    try {
+      fs.unlinkSync(temporary);
+    } catch {}
+  }
+}
+
+function save(data, { createBackup = true } = {}) {
+  const file = filePath();
+  const backup = backupPath();
+
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+
+  if (createBackup && fs.existsSync(file)) {
+    const current = readJson(file);
+
+    // Never replace a known-good backup with a corrupt/partial file.
+    if (current !== null) {
+      try {
+        fs.copyFileSync(file, backup);
+      } catch {
+        // The main file is still usable; continue with the save.
+      }
+    }
+  }
+
+  writeFileSafely(file, data);
+}
+
+function load() {
+  const file = filePath();
+  const backup = backupPath();
+
+  const data = readJson(file);
+
+  if (data !== null) {
     let changed = false;
 
     // Sessions are the source of truth for application activity. Remove the
     // old event counters from existing files during migration.
     for (const value of Object.values(data)) {
-      if (value && typeof value === "object" && !Array.isArray(value) && "events" in value) {
+      if (
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        "events" in value
+      ) {
         delete value.events;
         changed = true;
       }
@@ -22,14 +130,33 @@ function load() {
 
     if (changed) save(data);
     return data;
-  } catch {
-    return {};
   }
-}
 
-function save(data) {
-  fs.mkdirSync(path.dirname(filePath()), { recursive: true });
-  fs.writeFileSync(filePath(), JSON.stringify(data, null, 2), "utf8");
+  /*
+   * IMPORTANT:
+   * Never turn a read/parse failure into an empty database. The old code did
+   * that, and the next tracking tick could save `{}` and erase all history.
+   *
+   * Try the last known-good backup first.
+   */
+  const recovered = readJson(backup);
+
+  if (recovered !== null) {
+    quarantine(file, "corrupt");
+
+    // Restore the recovered data without backing up the corrupt main file.
+    save(recovered, { createBackup: false });
+    return recovered;
+  }
+
+  /*
+   * Both copies are unavailable/corrupt. Preserve whatever files remain so
+   * the data is not silently destroyed, then start a fresh store.
+   */
+  if (fs.existsSync(file)) quarantine(file, "corrupt");
+  if (fs.existsSync(backup)) quarantine(backup, "backup-corrupt");
+
+  return {};
 }
 
 export function dateKey(date = new Date()) {
@@ -59,7 +186,9 @@ function normalizeDay(value) {
     total: Number(value.total) || 0,
     apps: value.apps && typeof value.apps === "object" ? value.apps : {},
     sessions:
-      value.sessions && typeof value.sessions === "object" ? value.sessions : {},
+      value.sessions && typeof value.sessions === "object"
+        ? value.sessions
+        : {},
   };
 }
 
@@ -89,7 +218,11 @@ function getApplicationSessions(day, application) {
   if (!target) return [];
 
   // Current format: sessions are grouped by application name.
-  if (day.sessions && typeof day.sessions === "object" && !Array.isArray(day.sessions)) {
+  if (
+    day.sessions &&
+    typeof day.sessions === "object" &&
+    !Array.isArray(day.sessions)
+  ) {
     for (const [name, value] of Object.entries(day.sessions)) {
       if (normalizeApplicationName(name) === target) {
         return cleanSessions(value);
@@ -101,8 +234,9 @@ function getApplicationSessions(day, application) {
   // usage.json was written before sessions were grouped by application.
   if (Array.isArray(day.sessions)) {
     return cleanSessions(
-      day.sessions.filter((session) =>
-        normalizeApplicationName(session?.application) === target,
+      day.sessions.filter(
+        (session) =>
+          normalizeApplicationName(session?.application) === target,
       ),
     );
   }
@@ -125,7 +259,9 @@ function dayUsage(data, date) {
     .sort((a, b) => b.seconds - a.seconds);
 
   const sessions = apps
-    .flatMap((app) => app.sessions.map((session) => ({ ...session, application: app.name })))
+    .flatMap((app) =>
+      app.sessions.map((session) => ({ ...session, application: app.name })),
+    )
     .sort((a, b) => a.open - b.open);
 
   // Merge app sessions into one overall activity timeline. This represents
@@ -167,7 +303,9 @@ export function recordApplicationSession(application, openAt, closeAt) {
   const end = Number(closeAt);
   const appName = String(application || "Unknown").trim() || "Unknown";
 
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return;
+  }
 
   const data = load();
   let cursor = new Date(start);
@@ -179,10 +317,16 @@ export function recordApplicationSession(application, openAt, closeAt) {
     const segmentEnd = Math.min(end, next.getTime());
     const day = normalizeDay(data[date]);
 
-    if (!Array.isArray(day.sessions[appName])) day.sessions[appName] = [];
-    day.sessions[appName].push({ open: cursor.getTime(), close: segmentEnd });
-    data[date] = day;
+    if (!Array.isArray(day.sessions[appName])) {
+      day.sessions[appName] = [];
+    }
 
+    day.sessions[appName].push({
+      open: cursor.getTime(),
+      close: segmentEnd,
+    });
+
+    data[date] = day;
     cursor = new Date(segmentEnd);
   }
 
@@ -220,6 +364,7 @@ export function getApplicationUsage(application, days = 30) {
   for (let i = count - 1; i >= 0; i--) {
     const date = dateKey(previousDate(i));
     const day = normalizeDay(data[date]);
+
     result.push({
       date,
       seconds: Math.floor(Number(day.apps[name]) || 0),
