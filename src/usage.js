@@ -34,7 +34,10 @@ function parseDate(date) {
 }
 
 function formatDate(date) {
-  return parseDate(date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return parseDate(date).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatFullDate(date) {
@@ -47,7 +50,10 @@ function formatFullDate(date) {
 }
 
 function formatClock(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function renderChart(history, selected) {
@@ -80,7 +86,8 @@ function renderChart(history, selected) {
     chart.appendChild(item);
   }
 
-  if (!history.length) chart.innerHTML = '<div class="empty">No usage recorded yet.</div>';
+  if (!history.length)
+    chart.innerHTML = '<div class="empty">No usage recorded yet.</div>';
 }
 
 function renderApps(day) {
@@ -89,7 +96,8 @@ function renderApps(day) {
   apps.innerHTML = "";
 
   if (!day.apps.length) {
-    apps.innerHTML = '<div class="empty">No application usage recorded for this day.</div>';
+    apps.innerHTML =
+      '<div class="empty">No application usage recorded for this day.</div>';
     return;
   }
 
@@ -138,11 +146,15 @@ function renderOverallActivity(day) {
   for (const session of sessions) {
     const open = Math.max(Number(session.open), dayStart);
     const close = Math.min(Number(session.close), dayEnd);
-    if (!Number.isFinite(open) || !Number.isFinite(close) || close <= open) continue;
+    if (!Number.isFinite(open) || !Number.isFinite(close) || close <= open)
+      continue;
 
     const segment = document.createElement("div");
     segment.className = "timeline-segment";
-    segment.setAttribute("aria-label", `${formatClock(open)} to ${formatClock(close)}, ${formatTime((close - open) / 1000)}`);
+    segment.setAttribute(
+      "aria-label",
+      `${formatClock(open)} to ${formatClock(close)}, ${formatTime((close - open) / 1000)}`,
+    );
     segment.style.left = `${((open - dayStart) / dayDuration) * 100}%`;
     segment.style.width = `${((close - open) / dayDuration) * 100}%`;
     segment.title = `${formatClock(open)} – ${formatClock(close)} · ${formatTime((close - open) / 1000)}`;
@@ -161,7 +173,8 @@ function renderOverallActivity(day) {
   }
 
   if (!sessions.length) {
-    activeSessionList.innerHTML = '<div class="empty">No recorded active periods for this day.</div>';
+    activeSessionList.innerHTML =
+      '<div class="empty">No recorded active periods for this day.</div>';
   }
 }
 
@@ -199,7 +212,9 @@ function renderRangeAnalytics(history) {
   }
 
   rangeTotal.textContent = formatTime(total);
-  rangeAverage.textContent = formatTime(activeDays.length ? total / activeDays.length : 0);
+  rangeAverage.textContent = formatTime(
+    activeDays.length ? total / activeDays.length : 0,
+  );
   rangeActiveDays.textContent = activeDays.length;
   rangePeak.textContent = peak.date ? formatDate(peak.date) : "—";
   rangeApps.textContent = applicationNames.size;

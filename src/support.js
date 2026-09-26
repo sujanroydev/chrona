@@ -9,9 +9,11 @@ back.addEventListener("click", () => {
   window.location.href = "index.html";
 });
 
-document.querySelectorAll('a[href^="http://"], a[href^="https://"]').forEach((link) => {
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    window.chrona.openExternal(link.href);
+document
+  .querySelectorAll('a[href^="http://"], a[href^="https://"]')
+  .forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.chrona.openExternal(link.href);
+    });
   });
-});

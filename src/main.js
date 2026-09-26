@@ -1,4 +1,12 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  Tray,
+  Menu,
+  nativeImage,
+  ipcMain,
+  shell,
+} from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isUserActive, getForegroundApplication } from "./windows.js";

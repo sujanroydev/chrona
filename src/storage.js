@@ -210,7 +210,9 @@ function cleanSessions(value) {
 }
 
 function normalizeApplicationName(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function getApplicationSessions(day, application) {
@@ -235,8 +237,7 @@ function getApplicationSessions(day, application) {
   if (Array.isArray(day.sessions)) {
     return cleanSessions(
       day.sessions.filter(
-        (session) =>
-          normalizeApplicationName(session?.application) === target,
+        (session) => normalizeApplicationName(session?.application) === target,
       ),
     );
   }

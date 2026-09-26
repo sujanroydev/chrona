@@ -25,15 +25,25 @@ function parseDate(date) {
 }
 
 function formatDate(date) {
-  return parseDate(date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return parseDate(date).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatClock(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function formatDateLong(date) {
-  return parseDate(date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return parseDate(date).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function renderUsage(data, selectedDate = null) {
@@ -64,7 +74,10 @@ function renderUsage(data, selectedDate = null) {
     item.append(value, wrap, date);
     item.setAttribute("role", "button");
     item.setAttribute("tabindex", "0");
-    item.setAttribute("aria-pressed", day.date === selectedDate ? "true" : "false");
+    item.setAttribute(
+      "aria-pressed",
+      day.date === selectedDate ? "true" : "false",
+    );
     item.addEventListener("click", () => {
       if (applicationData) selectDay(day.date);
     });
@@ -87,7 +100,12 @@ function renderTimeline(day) {
       open: Number(session?.open),
       close: Number(session?.close),
     }))
-    .filter((session) => Number.isFinite(session.open) && Number.isFinite(session.close) && session.close > session.open)
+    .filter(
+      (session) =>
+        Number.isFinite(session.open) &&
+        Number.isFinite(session.close) &&
+        session.close > session.open,
+    )
     .sort((a, b) => a.open - b.open);
 
   const dayStart = new Date(`${day.date}T00:00:00`).getTime();
@@ -101,7 +119,10 @@ function renderTimeline(day) {
 
     const segment = document.createElement("div");
     segment.className = "timeline-segment";
-    segment.setAttribute("aria-label", `${formatClock(open)} to ${formatClock(close)}, ${formatTime((close - open) / 1000)}`);
+    segment.setAttribute(
+      "aria-label",
+      `${formatClock(open)} to ${formatClock(close)}, ${formatTime((close - open) / 1000)}`,
+    );
     segment.style.left = `${Math.max(0, Math.min(100, ((open - dayStart) / dayDuration) * 100))}%`;
     segment.style.width = `${Math.max(0, Math.min(100, ((close - open) / dayDuration) * 100))}%`;
     segment.title = `${formatClock(open)} – ${formatClock(close)} · ${formatTime((close - open) / 1000)}`;
@@ -120,10 +141,10 @@ function renderTimeline(day) {
   }
 
   if (!timelineTrack.children.length) {
-    sessionList.innerHTML = '<div class="empty">No recorded usage intervals for this day.</div>';
+    sessionList.innerHTML =
+      '<div class="empty">No recorded usage intervals for this day.</div>';
   }
 }
-
 
 function renderAnalytics(data, selectedDay) {
   const day = selectedDay || { seconds: 0, sessions: [] };
@@ -131,7 +152,10 @@ function renderAnalytics(data, selectedDay) {
   const totalSeconds = Math.max(0, Number(day.seconds) || 0);
   const averageSession = sessions.length ? totalSeconds / sessions.length : 0;
   const longestSession = sessions.reduce((best, session) => {
-    const duration = Math.max(0, (Number(session.close) - Number(session.open)) / 1000);
+    const duration = Math.max(
+      0,
+      (Number(session.close) - Number(session.open)) / 1000,
+    );
     return duration > best ? duration : best;
   }, 0);
   const firstSession = sessions[0];
@@ -142,14 +166,17 @@ function renderAnalytics(data, selectedDay) {
   activeDaysEl.textContent = totalSeconds > 0 ? "Yes" : "No";
   average.textContent = formatTime(averageSession);
   longest.textContent = formatTime(longestSession);
-  mostActive.textContent = firstSession && lastSession
-    ? `${formatClock(firstSession.open)} – ${formatClock(lastSession.close)}`
-    : "—";
+  mostActive.textContent =
+    firstSession && lastSession
+      ? `${formatClock(firstSession.open)} – ${formatClock(lastSession.close)}`
+      : "—";
   sessionsPerDay.textContent = totalSeconds > 0 ? "Active" : "No usage";
 
   const selectedDayLabel = document.querySelector("#selectedDayLabel");
   if (selectedDayLabel) {
-    selectedDayLabel.textContent = selectedDay ? formatDateLong(selectedDay.date) : "No day selected";
+    selectedDayLabel.textContent = selectedDay
+      ? formatDateLong(selectedDay.date)
+      : "No day selected";
   }
 }
 
@@ -161,7 +188,11 @@ async function selectDay(date) {
 
   const params = new URLSearchParams(window.location.search);
   params.set("date", selectedDay.date);
-  window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  window.history.replaceState(
+    null,
+    "",
+    `${window.location.pathname}?${params.toString()}`,
+  );
 
   renderUsage(applicationData, selectedDay.date);
   renderAnalytics(applicationData, selectedDay);
@@ -183,19 +214,23 @@ async function init() {
   const data = await window.chrona.getApplicationUsage(application, 30);
   applicationData = data;
 
-  const selectedDay = data.days.find((day) => day.date === requestedDate) || data.days[data.days.length - 1];
+  const selectedDay =
+    data.days.find((day) => day.date === requestedDate) ||
+    data.days[data.days.length - 1];
   if (selectedDay) {
     await selectDay(selectedDay.date);
   } else {
     renderUsage(data, null);
     renderAnalytics(data, null);
-    renderTimeline({ date: requestedDate || new Date().toISOString().slice(0, 10), sessions: [] });
+    renderTimeline({
+      date: requestedDate || new Date().toISOString().slice(0, 10),
+      sessions: [],
+    });
   }
 }
 
 back.addEventListener("click", () => {
   window.location.href = "usage.html";
 });
-
 
 init();
