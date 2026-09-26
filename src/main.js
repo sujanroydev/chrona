@@ -20,6 +20,27 @@ const trayPath = path.join(__dirname, "assets/tray.png");
 const CHECK_INTERVAL = 10_000;
 const IDLE_LIMIT = 5 * 60 * 1000;
 
+// Chrona is a single-instance application. Without this lock, every launch
+// (including repeated startup/task-scheduler launches) creates another
+// tracker, which can duplicate tracking and create multiple tray icons.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!gotSingleInstanceLock) {
+  app.quit();
+}
+
+app.on("second-instance", (_event, commandLine) => {
+  // A startup launch uses --hidden. If Chrona is already running, simply
+  // ignore duplicate hidden launches instead of opening another window.
+  if (commandLine.includes("--hidden")) return;
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  }
+});
+
 let mainWindow;
 let tray;
 let timer;
