@@ -25,6 +25,7 @@ function formatTime(seconds) {
   const value = Math.max(0, Math.floor(seconds));
   const hours = Math.floor(value / 3600);
   const minutes = Math.floor((value % 3600) / 60);
+  if (minutes === 0 && hours === 0) return `${seconds}s`;
   if (hours === 0) return `${minutes}m`;
   return `${hours}h ${minutes}m`;
 }

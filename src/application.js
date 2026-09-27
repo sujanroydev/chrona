@@ -16,6 +16,7 @@ function formatTime(seconds) {
   const value = Math.max(0, Math.floor(seconds));
   const hours = Math.floor(value / 3600);
   const minutes = Math.floor((value % 3600) / 60);
+  if (minutes === 0 && hours === 0) return `${seconds}s`;
   if (hours === 0) return `${minutes}m`;
   return `${hours}h ${minutes}m`;
 }
@@ -95,10 +96,16 @@ function renderTimeline(day) {
   timelineTrack.innerHTML = "";
   sessionList.innerHTML = "";
 
-  const sessionsForDay = (Array.isArray(day?.sessions) ? day.sessions : [])
+  const sessions = Array.isArray(day?.sessions) ? day.sessions : [];
+  const dayStart = new Date(`${day.date}T00:00:00`).getTime();
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  const dayDuration = 24 * 60 * 60 * 1000;
+  const MIN_GAP = 30 * 1000;
+
+  const sessionsForDay = sessions
     .map((session) => ({
-      open: Number(session?.open),
-      close: Number(session?.close),
+      open: Math.max(Number(session.open), dayStart),
+      close: Math.min(Number(session.close), dayEnd),
     }))
     .filter(
       (session) =>
@@ -108,15 +115,34 @@ function renderTimeline(day) {
     )
     .sort((a, b) => a.open - b.open);
 
-  const dayStart = new Date(`${day.date}T00:00:00`).getTime();
-  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
-  const dayDuration = 24 * 60 * 60 * 1000;
+  const items = [];
+  let previousClose = dayStart;
 
   for (const session of sessionsForDay) {
-    const open = Math.max(session.open, dayStart);
-    const close = Math.min(session.close, dayEnd);
-    if (close <= open) continue;
+    const gap = session.open - previousClose;
 
+    if (gap <= MIN_GAP) {
+      const lastIndex = items.length - 1;
+      items[lastIndex] = {
+        ...items[lastIndex],
+        close: session.open,
+      };
+    } else {
+      items.push({
+        type: "active",
+        open: session.open,
+        close: session.close,
+      });
+    }
+
+    previousClose = Math.max(previousClose, session.close);
+  }
+
+  for (const item of items) {
+    const open = item.open;
+    const close = item.close;
+
+    // Timeline
     const segment = document.createElement("div");
     segment.className = "timeline-segment";
     segment.setAttribute(
@@ -128,6 +154,7 @@ function renderTimeline(day) {
     segment.title = `${formatClock(open)} – ${formatClock(close)} · ${formatTime((close - open) / 1000)}`;
     timelineTrack.appendChild(segment);
 
+    // List
     const row = document.createElement("div");
     row.className = "session";
     const time = document.createElement("span");
