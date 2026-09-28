@@ -89,6 +89,11 @@ function renderChart(history, selected) {
 
   if (!history.length)
     chart.innerHTML = '<div class="empty">No usage recorded yet.</div>';
+
+  // Scroll to the latest day
+  requestAnimationFrame(() => {
+    chart.scrollLeft = chart.scrollWidth;
+  });
 }
 
 function renderApps(day) {

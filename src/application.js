@@ -90,6 +90,11 @@ function renderUsage(data, selectedDate = null) {
     });
     usageChart.appendChild(item);
   }
+
+  // Scroll to the latest day
+  requestAnimationFrame(() => {
+    usageChart.scrollLeft = usageChart.scrollWidth;
+  });
 }
 
 function renderTimeline(day) {
