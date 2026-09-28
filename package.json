@@ -20,6 +20,7 @@
   "build": {
     "appId": "in.sujanroy.chrona",
     "productName": "Chrona",
+    "artifactName": "Chrona.Setup.${ext}",
     "files": [
       "src/**/*",
       "package.json"
@@ -27,7 +28,8 @@
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "executableName": "Chrona"
     }
   }
 }
