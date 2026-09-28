@@ -20,6 +20,7 @@ const back = document.querySelector("#back");
 
 let currentHistory = [];
 let selectedDate = null;
+let refreshTimer = null;
 
 function formatTime(seconds) {
   const value = Math.max(0, Math.floor(seconds));
@@ -275,14 +276,33 @@ async function selectDay(date) {
   renderRangeAnalytics(currentHistory);
 }
 
-async function init() {
+async function refresh() {
   currentHistory = await window.chrona.getUsageHistory(30);
-  selectedDate = currentHistory[currentHistory.length - 1]?.date;
+
+  // Keep the currently selected day.
+  if (
+    !selectedDate ||
+    !currentHistory.some((day) => day.date === selectedDate)
+  ) {
+    selectedDate = currentHistory[currentHistory.length - 1]?.date;
+  }
 
   renderChart(currentHistory, selectedDate);
   renderRangeAnalytics(currentHistory);
 
-  if (selectedDate) await selectDay(selectedDate);
+  if (selectedDate) {
+    const day = await window.chrona.getDayUsage(selectedDate);
+
+    renderApps(day);
+    renderOverallActivity(day);
+    renderDayAnalytics(day);
+  }
+}
+
+async function init() {
+  await refresh();
+
+  refreshTimer = setInterval(refresh, 10_000);
 }
 
 back.addEventListener("click", () => {

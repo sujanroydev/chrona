@@ -10,7 +10,9 @@ const sessionsPerDay = document.querySelector("#sessions");
 const back = document.querySelector("#back");
 const timelineTrack = document.querySelector("#timelineTrack");
 const sessionList = document.querySelector("#sessionList");
+
 let applicationData = null;
+let refreshTimer = null;
 
 function formatTime(seconds) {
   const value = Math.max(0, Math.floor(seconds));
@@ -231,6 +233,30 @@ async function selectDay(date) {
   renderTimeline(selectedDay);
 }
 
+async function refresh() {
+  if (!applicationData) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const application = params.get("app");
+
+  if (!application) return;
+
+  const data = await window.chrona.getApplicationUsage(application, 30);
+  applicationData = data;
+
+  const requestedDate = params.get("date");
+
+  const selectedDay =
+    data.days.find((day) => day.date === requestedDate) ||
+    data.days[data.days.length - 1];
+
+  if (selectedDay) {
+    renderUsage(data, selectedDay.date);
+    renderAnalytics(data, selectedDay);
+    renderTimeline(selectedDay);
+  }
+}
+
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const application = params.get("app");
@@ -243,22 +269,19 @@ async function init() {
   }
 
   title.textContent = application;
+
   const data = await window.chrona.getApplicationUsage(application, 30);
   applicationData = data;
 
   const selectedDay =
     data.days.find((day) => day.date === requestedDate) ||
     data.days[data.days.length - 1];
+
   if (selectedDay) {
     await selectDay(selectedDay.date);
-  } else {
-    renderUsage(data, null);
-    renderAnalytics(data, null);
-    renderTimeline({
-      date: requestedDate || new Date().toISOString().slice(0, 10),
-      sessions: [],
-    });
   }
+
+  refreshTimer = setInterval(refresh, 10_000);
 }
 
 back.addEventListener("click", () => {
